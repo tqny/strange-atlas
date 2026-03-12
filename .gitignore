@@ -13,8 +13,22 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Playwright
+.playwright-browsers/
+node_modules/
+
+# Screenshots (dev only)
+screenshots/
 .vscode/
 .idea/
 
 # Node
 node_modules/
+
+# Built output (21MB, regenerated via scripts/build-globe.py)
+globe-preview.html
+
+# Claude Code
+.claude/
+HANDOFF.md

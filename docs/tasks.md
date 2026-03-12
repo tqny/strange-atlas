@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-PLAN
+BUILD — Globe Design Iteration
 
 ## Planning Tasks
 
@@ -16,102 +16,83 @@ PLAN
 - [x] Draft design.md (Pass 1 — structure and direction, kept loose per Tony's preference)
 - [x] Draft tasks.md (this file)
 - [x] Draft README.md
-- [ ] Review planning package with Tony → confirm or adjust before build
+- [x] Review planning package with Tony → transitioned to build via preview prototype
 
 ## Build Tasks
 
 ### Phase 0: Data Preparation
 
-- [ ] **Acquire source data** — Download `strange_places_v5.2.json` from GitHub. Verify structure, record count, field names, category list.
-  - Done when: source file is in repo, field schema is documented, 14 categories confirmed.
+- [x] **Acquire source data** — `strange_places_v5.2.json` (138MB, 354,770 records, 14 categories confirmed). CC BY 4.0.
+- [x] **Write data split script** — `scripts/split-data.js`. 14 category JSON files in `data/`. Largest: tornadoes (71,813 records, 12.8MB).
+- [x] **Acquire world geometry** — `data/world-110m.json` (TopoJSON, 55KB). Custom decoder in preview, no D3 dependency.
+- [x] **Acquire countries geometry** — `data/countries-110m.json` (TopoJSON, 108KB) from world-atlas CDN. 177 countries for border lines.
+- [x] **Filter UFO data** — `data/ufo-sightings-2010.json` (21,490 records, 5.2MB) filtered from 60,632 to 2010+.
+- [x] **Cut bulk categories** — Removed tornadoes, caves, megaliths, storm events. 10 categories, ~99K total points.
 
-- [ ] **Write data split script** — `scripts/split-data.js` that reads source JSON and outputs 14 category files to `data/`. Each file contains an array of `{ name, lat, lng, date, description, category }` objects. Strip unnecessary fields to minimize file size.
-  - Done when: 14 JSON files exist in `data/`, total record count matches source, largest file (tornadoes) size is known.
+### Phase 1: Flat Map Prototype (Superseded)
 
-- [ ] **Acquire and simplify world GeoJSON** — Get Natural Earth 110m or 50m world boundaries. Simplify if needed for canvas rendering performance. Save as `data/world.json`.
-  - Done when: `world.json` renders recognizable continents and is under 500KB.
+- [x] **preview.html** — Original 2D canvas prototype (620KB, all 14 categories inlined). Dot-matrix halftone map, toggles, Intersections mode, tooltips, additive blending. Still exists but superseded by globe.
 
-### Phase 1: Map Prototype (Highest Risk)
+### Phase 2: Globe Prototype
 
-- [ ] **Scaffold project** — Create `index.html`, `css/style.css`, `js/app.js`. Set up HTML shell with full-viewport canvas, link fonts (Playfair + Inter), apply base dark styles. Wire up JS module loading (ES modules via `<script type="module">`).
-  - Done when: page loads with a black full-viewport canvas and correct fonts.
+- [x] **Globe scaffold** — Three.js r128 from CDN. InstancedMesh for dots (replaced Points/ShaderMaterial which had rendering artifacts in headless).
+- [x] **Template/build system** — `globe-template.html` + `scripts/build-globe.py` → `globe-preview.html` (~21MB). Avoids editing 21MB files directly.
+- [x] **Dot-matrix continents** — InstancedMesh with SphereGeometry. DOT_SPACING=0.4°, DOT_RADIUS=0.0015. Latitude-adjusted spacing.
+- [x] **Country border lines** — LineSegments from countries-110m.json. Color #aaaaaa at 45% opacity. Graticule wireframe removed.
+- [x] **Category data points** — InstancedMesh per category (CAT_DOT_RADIUS=0.007). Toggle visibility via UI buttons. All 10 categories wired.
+- [x] **Mouse interaction** — Click-drag rotation with inertia. Scroll wheel zoom (range 2.2–6.0). Auto-rotate on load.
+- [x] **UI overlay** — Wordmark top-left, category toggles right-center, atlas text bottom-left, tooltip (HTML positioned).
+- [x] **Playwright screenshots** — `scripts/screenshot.mjs` with repo-local Chromium. Limited by software WebGL rendering — use Chrome MCP for visual review instead.
 
-- [ ] **Implement projection module** — `js/projection.js`. Wrap D3 equirectangular projection. Convert lat/lng → canvas x/y. Handle canvas resize.
-  - Done when: known coordinates (e.g., London, New York, Tokyo) project to visually correct canvas positions.
+### Phase 3: Globe Design Iteration (Current)
 
-- [ ] **Render dot-matrix continents** — `js/map.js` first pass. Load `world.json`, project polygon boundaries, fill landmasses with a dot grid pattern. Variable density halftone: denser toward polygon centers/coastlines, sparser at edges. Dark grey dots on black background.
-  - Done when: recognizable world continents render as halftone dot-matrix on canvas. This is the highest-risk task — prototype and iterate.
-
-- [ ] **Render category points** — Load one test category (e.g., volcanoes — moderate count). Draw colored glowing dots at projected coordinates on top of the continent base layer.
-  - Done when: volcano points render in the correct color at geographically plausible locations with a subtle glow/bloom effect.
-
-- [ ] **Canvas performance test** — Load the largest category (tornadoes, ~70K points). Measure frame time. If unacceptable, implement point thinning, spatial indexing, or level-of-detail reduction.
-  - Done when: 70K points render without noticeable freeze or jank on a standard laptop.
-
-### Phase 2: State + Data Loading
-
-- [ ] **Implement state manager** — `js/state.js`. Track active categories, hovered point, current Atlas text. Pub/sub pattern for state change notifications.
-  - Done when: toggling a category in state triggers registered callbacks.
-
-- [ ] **Implement data loader** — `js/data.js`. Fetch category JSON on demand. Cache in memory. Expose `loadCategory(id)` async function.
-  - Done when: toggling a category fetches the correct JSON file (or returns cached), and data is available for rendering.
-
-- [ ] **Wire state → render loop** — Connect state changes to map re-render. When active categories change, map redraws with correct points.
-  - Done when: programmatically toggling categories causes the map to update with the right colored points.
-
-### Phase 3: UI Controls
-
-- [ ] **Build category toggle panel** — `js/controls.js`. Render 14 toggle buttons with category name and color indicator. Clicking toggles category in state.
-  - Done when: all 14 toggles render, clicking one lights up/dims the toggle and triggers data load + map render for that category.
-
-- [ ] **Build Atlas observation panel** — Quiet text panel (bottom of viewport or similar). Displays Atlas observation text when categories change. Initial state: "354,770 phenomena. 14 categories. Select one to begin."
-  - Done when: panel renders, updates text on category toggle, styled as editorial caption (not chat bubble).
-
-- [ ] **Build hover tooltip** — Detect which point the cursor is near (spatial hit detection on canvas). Show tooltip with name, category, date, description. Hide when cursor moves away.
-  - Done when: hovering near a point shows a correctly populated tooltip; moving away hides it.
+- [x] **Dot density tuning** — Iterated from 2.0° → 0.8° → 0.4° spacing, radius from 0.006 → 0.003 → 0.0015.
+- [x] **Country borders added** — Subtle lines for geographic context, replacing graticule.
+- [x] **Zoom limits** — Min distance 2.2 to keep dots looking fine.
+- [x] **Fix spurious dot line** — Antimeridian-wrapping polygons (Fiji) caused false PIP hits. Filtered small wrapping polygons.
+- [x] **Fix Arctic dot anomalies** — Eurasia polygon wrapping ±180° broke PIP parity. Fixed via `splitAtAntimeridian()`.
+- [x] **Bring Antarctica back** — Re-enabled Antarctica dots and borders via `fixPolarPoly()` for the 1-wrap-edge polar polygon. Dot grid extended to -89°.
+- [x] **Atmosphere glow** — Fresnel rim shader on BackSide sphere. Light ocean blue halo around globe edge.
+- [ ] **Category point styling** — Test toggling all 10 categories visually. Tune glow/size/color per category.
+- [ ] **Landing state polish** — Wordmark, opening Atlas text, idle state feel. The 60-second first impression.
+- [ ] **Add ambient idle animation** — Subtle continent dot pulse when nothing is selected.
 
 ### Phase 4: Atlas Narrator Content
 
-- [ ] **Write single-category observations** — 14 entries, one per category. Dry, deadpan, 1–3 sentences each. Save in `js/atlas.js` or a separate `data/atlas-responses.json`.
-  - Done when: every single-category toggle produces a unique, tonally consistent Atlas observation.
+- [ ] **Write single-category observations** — 10 entries (reduced from 14). Dry, deadpan, 1–3 sentences each.
+- [ ] **Write two-category intersection observations** — Top 20+ combos. Dry, geographic.
+- [ ] **Implement narrator logic** — Lookup by active category combo. Handle 0, 1, 2, 3+ categories.
 
-- [ ] **Write two-category intersection observations** — Top 20+ most interesting two-category combinations. Dry, specific to the geographic intersection. Fallback text for uncovered combos.
-  - Done when: the most likely category combos produce specific observations; edge cases get a reasonable fallback.
+### Phase 5: Overlap / Intersections (Port from preview.html)
 
-- [ ] **Implement Atlas narrator logic** — `js/atlas.js`. Lookup current active categories → return appropriate observation. Handle 0, 1, 2, and 3+ active categories.
-  - Done when: Atlas panel always shows contextually appropriate text for any combination of active categories.
+- [ ] **Port overlap detection to globe** — Haversine distance + spatial grid from preview.html. 150km radius.
+- [ ] **Intersection rendering on globe** — Filter to overlap points, visual distinction.
+- [ ] **Intersection UX refinement** — Animate transition, improve visual distinction.
 
-### Phase 5: Overlap Visualization
+### Phase 6: Deployment
 
-- [ ] **Implement overlap zone rendering** — Where points from multiple active categories are geographically close, increase brightness and blend colors. Define a radius threshold. Use canvas composite operations or manual brightness calculation.
-  - Done when: activating two categories that geographically overlap produces visible intensification/blending at intersection points.
+- [x] **Create repo** — `github.com/tqny/strange-atlas`, published.
+- [x] **Initial commit** — Source JSON + dataset folder excluded via `.gitignore`. Data files excluded for now (preview is self-contained).
+- [ ] **Enable GitHub Pages** — Serve from main branch.
+- [ ] **Final README pass** — Portfolio-quality.
+- [ ] **Cross-browser check** — Chrome, Firefox, Safari.
 
-### Phase 6: About Page + Polish
+### Phase 7: Dashboard Page (Post-MVP)
 
-- [ ] **Build About This Project page** — `about.html`. Content: data source explanation, 14 categories, intersection mechanic, AI narrator concept + Phase 2 roadmap, build approach (vanilla JS, canvas, pre-split JSON), portfolio intent. Same tokens and typography as main page.
-  - Done when: page is complete, linked from main page, tonally consistent (honest, specific, a little dry).
+- [ ] **Dashboard design** — Statistical analysis view: category breakdown, reports over time, by-state choropleth, top states. Reference: Strange Places dashboard.
+- [ ] **Dashboard implementation** — Separate page with shared nav. Chart library TBD.
 
-- [ ] **Add ambient idle animation** — Subtle slow dot pulse on the continent map when no categories are selected. Barely perceptible. Gives the page life.
-  - Done when: the page has a subtle living quality even before interaction.
+### Phase 8: About Page (Post-MVP)
 
-- [ ] **Landing state polish** — Ensure the initial load experience is right. "Strange Atlas" wordmark in Playfair Display. Atlas panel shows opening line. All dots dim. Everything invites interaction.
-  - Done when: first impression matches the 60-second success criteria setup.
+- [ ] **About page** — `about.html`. In-product reviewer brief: data sources, design intent, build story, portfolio framing. Same design tokens as main page.
 
-- [ ] **Cross-browser sanity check** — Test in Chrome, Firefox, Safari. Fix any canvas rendering inconsistencies.
-  - Done when: map renders correctly in all three browsers.
+### Phase 9: Modular Refactor (Post-MVP)
 
-### Phase 7: Deployment
-
-- [ ] **Configure GitHub Pages deployment** — Set up repo, push, configure GH Pages to serve from main branch (or /docs, depending on structure).
-  - Done when: live at `tqny.github.io/strange-atlas` (or similar) and fully functional.
-
-- [ ] **Final README pass** — Ensure README is portfolio-quality. Not just technical — explains the project's intent, the data, the design choices, the AI workflow story.
-  - Done when: README reads well to a hiring manager who spends 30 seconds on it.
+- [ ] **Sync modular JS** — Port globe-template.html logic into `js/` modules. Add fetch-based data loading.
+- [ ] **Convert to production multi-page site** — Shared nav component, ES modules, fetch data on demand.
 
 ## Polish Tasks
 
-<!-- Populate as build nears completion. -->
 - [ ] Responsive/mobile considerations (post-MVP but note any quick wins)
 - [ ] Performance profiling and optimization pass
 - [ ] Accessibility audit (keyboard navigation, screen reader basics)
-- [ ] Phase 2 architecture prep (ensure Atlas narrator swap point is clean)

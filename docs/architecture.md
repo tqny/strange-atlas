@@ -4,112 +4,85 @@
 
 ## Stack
 
-- Vanilla JavaScript (no framework)
-- Canvas API for map and point rendering
-- D3.js for equirectangular coordinate projection math (d3-geo)
+- Three.js r128 (CDN) — WebGL globe rendering
+- Vanilla JavaScript — no framework
+- Custom TopoJSON decoder — no D3 dependency
 - CSS custom properties for design tokens
-- Static JSON data files (pre-split by category)
+- Static JSON data files (pre-split by category, inlined at build time)
 - GitHub Pages for deployment
 
-## Module Structure
+## Current Structure
 
-### 1. Map Renderer (`map.js`)
-Owns the canvas element and all drawing operations.
-- Renders dot-matrix continent outlines from GeoJSON world data
-- Handles variable-density halftone dot pattern for landmasses
-- Draws category points as colored glowing dots
-- Handles overlap zone visual intensification (additive blending / brightness)
-- Manages canvas resize and redraw on viewport change
-- Exposes `render(state)` — receives current app state, redraws accordingly
+The project is currently a single-file prototype (`globe-template.html`) built via a Python script into `globe-preview.html`. This is intentional for rapid iteration. Phase 9 refactors into modules.
 
-### 2. Projection (`projection.js`)
-Coordinate math layer.
-- Wraps D3 equirectangular projection
-- Converts lat/lng to canvas x/y
-- Handles viewport scaling
-- Single source of truth for coordinate transforms
+### Build Pipeline
 
-### 3. Data Loader (`data.js`)
-Fetches and caches category data.
-- Loads pre-split JSON files on demand per category toggle
-- Caches loaded categories in memory (no re-fetch)
-- Exposes `loadCategory(id)` → returns array of point records
-- Handles loading states
+```
+globe-template.html          ← edit this (source of truth)
+  + data/world-110m.json     ← TopoJSON land geometry
+  + data/countries-110m.json ← TopoJSON country borders
+  + data/*.json              ← 10 category data files
+        ↓
+  scripts/build-globe.py     ← inlines all data as JSON
+        ↓
+  globe-preview.html         ← ~21MB, self-contained, do not edit
+```
 
-### 4. State Manager (`state.js`)
-Application state and category toggle logic.
-- Tracks which categories are active
-- Tracks hovered point (if any)
-- Tracks current Atlas response
-- Emits state changes to trigger re-renders
-- Simple pub/sub or callback pattern — no library needed
+### Key Components (within globe-template.html)
 
-### 5. Atlas Narrator (`atlas.js`)
-Pre-scripted observation engine.
-- Lookup table: single-category observations (14 entries)
-- Lookup table: two-category intersection observations (top 20+ combos)
-- Fallback observations for uncovered combinations
-- Returns observation text given active category set
-- Designed so Phase 2 can swap this for live Claude API calls with no UI changes
+1. **TopoJSON Decoder** — `topoToPolygons()`, arc decoding. Converts TopoJSON to polygon rings for PIP testing and border rendering.
 
-### 6. UI Controls (`controls.js`)
-Category toggles and tooltip.
-- Renders 14 category toggle buttons with color indicators
-- Handles toggle click → updates state
-- Renders hover tooltip (name, category, date, description)
-- Renders Atlas observation panel
-- All DOM manipulation for non-canvas UI elements
+2. **Land Polygon Preparation** — Builds `landPolygons` array from world geometry. Handles three antimeridian cases:
+   - Small wrapping polygons (Fiji-like): filtered out
+   - 2-wrapping-edge polygons (Eurasia): split into sub-polygons via `splitAtAntimeridian()`
+   - 1-wrapping-edge polar polygons (Antarctica): closed via `fixPolarPoly()`
 
-### 7. App Shell (`app.js`)
-Entry point and orchestrator.
-- Initializes all modules
-- Wires state changes → data loading → map re-render → Atlas response → UI update
-- Sets up event listeners (toggle clicks, canvas hover/mousemove)
-- Manages the render loop
+3. **Point-in-Polygon (PIP)** — Standard ray-casting. Used to determine which grid points are land for dot-matrix rendering.
 
-### 8. About Page (`about.html`)
-Separate static HTML page.
-- Explains data source, intersection mechanic, AI narrator concept, build approach, portfolio intent
-- Same design tokens and typography as main page
-- Links back to main page
+4. **Continent Dot Grid** — InstancedMesh spheres at 0.4° spacing, latitude-adjusted. ~74K dots. Silhouette-aware ShaderMaterial discards fragments at globe edge.
+
+5. **Country Borders** — LineSegments rendered once per arc (not per country) to avoid double-drawing shared borders.
+
+6. **Category Points** — InstancedMesh per category. Toggle visibility via UI buttons.
+
+7. **Atmosphere Glow** — BackSide sphere with Fresnel rim shader. Light ocean blue halo.
+
+8. **Mouse Interaction** — Click-drag rotation with inertia, scroll zoom, auto-rotate on load.
+
+9. **UI Overlay** — HTML elements positioned over the WebGL canvas: wordmark, category toggles, atlas text panel, tooltip.
+
+## Data
+
+- **Source:** `strange_places_v5.2.json` (CC BY 4.0, 354K records, 14 original categories)
+- **Current:** 10 categories, ~99K total points (tornadoes, caves, megaliths, storm events cut for performance/scope)
+- **Geometry:** `world-110m.json` (55KB, land PIP), `countries-110m.json` (108KB, border lines)
+- **Build-time inlining:** All data is embedded in the built HTML file. No runtime fetching in the current prototype.
 
 ## File / Folder Layout
 
 ```
 strange-atlas/
-├── index.html              # Main app shell
-├── about.html              # About This Project page
-├── css/
-│   └── style.css           # All styles + CSS custom properties (tokens)
-├── js/
-│   ├── app.js              # Entry point, orchestrator
-│   ├── map.js              # Canvas map renderer
-│   ├── projection.js       # Coordinate projection (D3 wrapper)
-│   ├── data.js             # Category data loader + cache
-│   ├── state.js            # App state manager
-│   ├── atlas.js            # Pre-scripted narrator
-│   └── controls.js         # UI toggles, tooltip, Atlas panel
+├── globe-template.html     # Source — edit this
+├── globe-preview.html      # Built output — do not edit
+├── preview.html            # Original 2D flat map prototype (superseded)
+├── scripts/
+│   ├── build-globe.py      # Template → built HTML with inlined data
+│   ├── split-data.js       # Source JSON → per-category JSON files
+│   └── screenshot.mjs      # Playwright screenshot (limited by software WebGL)
 ├── data/
-│   ├── world.json          # GeoJSON world boundaries (simplified)
-│   ├── ufo-sightings.json  # Pre-split category files
+│   ├── world-110m.json     # TopoJSON land geometry
+│   ├── countries-110m.json # TopoJSON country borders
+│   ├── ufo-sightings-2010.json
 │   ├── volcanoes.json
 │   ├── bigfoot.json
 │   ├── haunted-places.json
-│   ├── megaliths.json
 │   ├── meteorites.json
-│   ├── tornadoes.json
-│   ├── caves.json
 │   ├── ghost-towns.json
 │   ├── shipwrecks.json
 │   ├── earthquakes.json
 │   ├── fireballs.json
-│   ├── thermal-springs.json
-│   └── storm-events.json
-├── assets/
-│   └── fonts/              # Self-hosted Playfair Display + Inter (if needed)
-├── scripts/
-│   └── split-data.js       # Build-time script: splits source JSON into category files
-├── docs/                   # Project documentation (not deployed)
+│   └── thermal-springs.json
+├── docs/
 │   ├── spec.md
 │   ├── architecture.md
 │   ├── design.md
@@ -119,34 +92,18 @@ strange-atlas/
 └── V3-master-prompt.md
 ```
 
-## Data Flow
+## Future: Multi-Page Site
 
-```
-User toggles category
-  → state.js updates active categories
-  → data.js loads category JSON (if not cached)
-  → atlas.js generates observation for current combo
-  → map.js re-renders canvas with updated points + overlaps
-  → controls.js updates toggle UI + Atlas panel text
+The current globe will become one page of a three-page site:
 
-User hovers point on canvas
-  → app.js performs hit detection on canvas coordinates
-  → state.js updates hovered point
-  → controls.js renders/hides tooltip
-```
+1. **Globe** (current) — interactive 3D dot-matrix map with category toggles and Atlas narrator
+2. **Dashboard** (Phase 7) — statistical analysis: category breakdown, reports over time, by-state view. Reference: Strange Places dashboard.
+3. **About** (Phase 8) — in-product reviewer brief: data sources, design intent, build story
 
-## External Dependencies
-
-- **D3-geo** (d3-geo standalone or full D3): equirectangular projection math. Loaded via CDN or bundled.
-- **GeoJSON world file**: simplified Natural Earth world boundaries for continent rendering. Included in `data/world.json`.
-- **Google Fonts**: Playfair Display + Inter (CDN link, or self-hosted in assets/).
-
-No other runtime dependencies. No build tools required for deployment.
+These will share a nav component and design tokens. The Phase 9 modular refactor converts the single-file prototype into ES modules with runtime data fetching.
 
 ## Boundaries and Swap Points
 
-- **Atlas Narrator** is the primary swap point: Phase 2 replaces static lookup with live Claude API calls. The interface (`getObservation(activeCategories, context)`) stays the same — only the implementation changes.
-- **Projection** is isolated so the projection method could change (e.g., to a globe view) without touching the renderer.
-- **Data Loader** is isolated so the data source could change (e.g., from static JSON to an API) without touching state or rendering.
-- **Map Renderer** owns all canvas operations — UI controls never draw to canvas directly.
-- **State Manager** is the single source of truth — no module reads state from the DOM.
+- **Atlas Narrator** is the primary swap point: Phase 2 replaces static lookup with live Claude API calls. The interface stays the same.
+- **Data loading** is isolated so the current build-time inlining can switch to runtime fetch when the project modularizes (Phase 9).
+- **Globe rendering** is self-contained in `globe-template.html`. Future pages (Dashboard, About) can share nav/tokens without coupling to the globe code.

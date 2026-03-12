@@ -4,9 +4,9 @@
 
 ## Product
 
-An interactive full-viewport world map that visualizes 354,770 real-world mysterious phenomena — UFO sightings, bigfoot encounters, haunted places, volcanoes, megaliths, shipwrecks, and more — across 14 categories. Users toggle categories on and off, watch the map respond with colored scatter points and overlap intensification, read dry Atlas observations, and hover for record details.
+An interactive 3D globe that visualizes ~99,000 real-world mysterious phenomena — UFO sightings, bigfoot encounters, haunted places, volcanoes, shipwrecks, and more — across 10 categories. Users toggle categories on and off, watch the globe respond with colored scatter points and overlap intensification, read dry Atlas observations, and hover for record details.
 
-Single-page vanilla JS app with a secondary "About This Project" page. Deployed to GitHub Pages.
+Three-page site: Globe (interactive map), Dashboard (statistical analysis), About (reviewer brief). Deployed to GitHub Pages.
 
 ## Target User
 
@@ -14,17 +14,21 @@ Primary: anyone curious about weird geography who stumbles on it and shares it. 
 
 ## Success Criteria
 
-A reviewer lands on the page, selects two categories, watches the map respond, reads one Atlas observation, and thinks: "I've never seen exactly this." Total time to that moment: under 60 seconds.
+A reviewer lands on the page, selects two categories, watches the globe respond, reads one Atlas observation, and thinks: "I've never seen exactly this." Total time to that moment: under 60 seconds.
 
-## MVP Scope
+## MVP Scope (Globe Page)
 
-- Full-viewport dark dot-matrix world map rendered via Canvas API from GeoJSON (custom — no tile libraries)
-- 14 category toggle filters, each with a distinct assigned color
-- Points render on the map per active category; overlap zones intensify visually
+- Full-viewport 3D dot-matrix globe rendered via Three.js (custom — no tile libraries)
+- 10 category toggle filters, each with a distinct assigned color
+- Points render on the globe per active category; overlap zones intensify visually
 - On category selection, The Atlas delivers a pre-scripted dry observation (1–3 sentences)
 - Hover on a point: tooltip with name, category, date, brief description
-- "About This Project" page (dedicated page)
 - Deployed to GitHub Pages
+
+## Post-MVP Pages
+
+- **Dashboard** — Statistical analysis view: category breakdown charts, reports over time, by-state choropleth, top states. Reference: Strange Places dashboard.
+- **About** — In-product reviewer brief: data sources, design intent, build story, portfolio framing.
 
 ## Non-Goals (MVP)
 
@@ -33,25 +37,23 @@ A reviewer lands on the page, selects two categories, watches the map respond, r
 - Mobile optimization
 - User accounts or saved states
 - Free-text search
-- Light mode toggle (Phase 2)
 
 ## Assumptions and Constraints
 
 - No paid infrastructure
 - No API keys in MVP — Atlas responses are pre-scripted only
 - Must deploy to GitHub Pages (static files only)
-- 354K records across 14 categories — performance is a real constraint
-- Pre-splitting data by category is the solution for load performance
-- Canvas rendering must handle up to ~70K points (tornado category) without freezing
+- ~99K records across 10 categories (cut from 354K/14 for performance and scope)
+- Pre-split category data inlined at build time; runtime fetching deferred to modular refactor
 - Source data: `strange_places_v5.2.json` from GitHub (CC BY 4.0)
 
 ## Data / State Model
 
-- Source: `strange_places_v5.2.json` pre-processed at build time into 14 category JSON files
-- Loaded client-side on demand when a category is toggled
+- Source: `strange_places_v5.2.json` pre-processed into 10 category JSON files
+- All data inlined into built HTML at build time (no runtime fetch in prototype)
 - All state managed in memory — no backend, no database, no localStorage
-- Coordinate projection: equirectangular (flat map) via custom canvas rendering
-- Atlas responses: static JSON lookup keyed by active category combination
+- 3D globe projection via Three.js (InstancedMesh dots on sphere)
+- Atlas responses: static lookup keyed by active category combination
 
 ## Auth / Access
 
