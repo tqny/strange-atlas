@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**BUILD — Globe Design Iteration (Phase 3)**
+**BUILD — Atlas Narrator Content (Phase 4)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -17,11 +17,12 @@ Update this field as the project advances.
 
 ## What To Do Right Now
 
-Globe prototype is working with dot-matrix continents, country borders, atmosphere glow, and all 10 categories wired. Currently iterating on visual design and polish. Next steps:
+Phase 3 (Globe Design Iteration) is complete. Next up:
 
-1. **Category point styling** — test toggling all 10 categories, tune glow/size/color.
-2. **Landing state polish** — wordmark, opening text, idle animation.
-3. Then move to Phase 4 (Atlas narrator content) and Phase 5 (port Intersections mode from preview.html).
+1. **Write single-category observations** — 10 entries, dry/deadpan, 1–3 sentences each.
+2. **Write two-category intersection observations** — Top 20+ combos, dry/geographic.
+3. **Implement narrator logic** — Lookup by active category combo. Handle 0, 1, 2, 3+ categories.
+4. Then Phase 5 (port Intersections mode from preview.html).
 
 ---
 

@@ -51,6 +51,10 @@ globe-template.html          ← edit this (source of truth)
 
 9. **UI Overlay** — HTML elements positioned over the WebGL canvas: wordmark, category toggles, atlas text panel, tooltip.
 
+10. **Landing Wave Animation** — Temporary InstancedMesh with US-bounded category points. Per-instance longitude and color attributes. Gaussian wave shader sweeps west→east. Self-disposing on completion. Fires 1s after page load.
+
+11. **Ambient Ripple** — Radial pond-ripple on continent dots. Computed in vertex shader: dots scale 2.5× and flash toward white at the wave front. Random origin each cycle, continuous. First ripple begins seamlessly from the east coast when the landing wave finishes.
+
 ## Data
 
 - **Source:** `strange_places_v5.2.json` (CC BY 4.0, 354K records, 14 original categories)
