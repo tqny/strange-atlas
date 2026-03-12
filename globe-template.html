@@ -26,8 +26,12 @@ canvas { display: block; }
 .toggle-dot { width: 8px; height: 8px; border-radius: 50%; opacity: 0.3; transition: opacity 0.2s ease, box-shadow 0.2s ease; flex-shrink: 0; }
 .toggle-btn.active .toggle-dot { opacity: 1; box-shadow: 0 0 6px currentColor; }
 .toggle-count { font-size: 0.62rem; color: var(--text-dim); font-weight: 300; min-width: 36px; text-align: left; }
-#atlas-panel { position: fixed; bottom: 32px; left: 36px; right: 36px; z-index: 10; pointer-events: none; }
-#atlas-text { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); line-height: 1.6; max-width: 480px; }
+#atlas-panel { position: fixed; bottom: 32px; left: 36px; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; pointer-events: none; }
+#atlas-toggle { background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 400; color: var(--text-mid); padding: 0 0 4px 0; transition: color 0.2s ease, opacity 0.3s ease; pointer-events: auto; opacity: 0; }
+#atlas-toggle:hover { color: var(--text); }
+#atlas-toggle.visible { opacity: 1; }
+#atlas-text { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); line-height: 1.6; max-width: 480px; transition: opacity 0.3s ease, max-height 0.3s ease; }
+#atlas-panel.collapsed #atlas-text { opacity: 0; max-height: 0; overflow: hidden; }
 #tooltip { position: fixed; z-index: 20; background: var(--panel-bg); border: 1px solid rgba(0,0,0,0.08); padding: 10px 14px; max-width: 280px; pointer-events: none; backdrop-filter: blur(12px); border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
 #tooltip.hidden { opacity: 0; visibility: hidden; }
 #tooltip-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
@@ -39,7 +43,7 @@ canvas { display: block; }
 <div id="globe-container"></div>
 <header id="wordmark"><h1>Strange Atlas</h1><div class="subtitle">98,775 phenomena across 10 categories</div></header>
 <aside id="controls" class="collapsed"><div id="category-toggles"></div><button id="controls-toggle" aria-label="Toggle categories">›</button></aside>
-<footer id="atlas-panel"><p id="atlas-text">Select a category to begin.</p></footer>
+<footer id="atlas-panel" class="collapsed"><button id="atlas-toggle" aria-label="Toggle observation">&#x203A;</button><p id="atlas-text">Select a category to begin.</p></footer>
 <div id="tooltip" class="hidden"><div id="tooltip-name"></div><div id="tooltip-meta"></div><div id="tooltip-desc"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -609,6 +613,21 @@ controlsToggleEl.addEventListener('click', () => {
 });
 const togglesEl = document.getElementById('category-toggles');
 const atlasTextEl = document.getElementById('atlas-text');
+const atlasPanelEl = document.getElementById('atlas-panel');
+const atlasToggleEl = document.getElementById('atlas-toggle');
+let atlasManualClose = false;
+atlasToggleEl.addEventListener('click', () => {
+  const isCollapsed = atlasPanelEl.classList.contains('collapsed');
+  if (isCollapsed) {
+    atlasPanelEl.classList.remove('collapsed');
+    atlasToggleEl.textContent = '\u2039';
+    atlasManualClose = false;
+  } else {
+    atlasPanelEl.classList.add('collapsed');
+    atlasToggleEl.textContent = '\u203A';
+    atlasManualClose = true;
+  }
+});
 function buildToggles() {
   for (const cat of CATEGORIES) {
     const btn = document.createElement('button'); btn.className='toggle-btn'; btn.dataset.id=cat.id;
@@ -680,8 +699,26 @@ function updateAtlasText() {
     newText = '';
   }
 
-  if (!atlasPromptDismissed && active.length > 0) {
+  // Panel visibility logic
+  if (active.length === 0) {
+    // No categories: collapse, hide chevron, reset manual close
+    atlasPanelEl.classList.add('collapsed');
+    atlasToggleEl.classList.remove('visible');
+    atlasToggleEl.textContent = '\u203A';
+    atlasManualClose = false;
+  } else if (!atlasPromptDismissed) {
+    // First category ever: auto-open, show chevron
     atlasPromptDismissed = true;
+    atlasPanelEl.classList.remove('collapsed');
+    atlasToggleEl.classList.add('visible');
+    atlasToggleEl.textContent = '\u2039';
+  } else {
+    // Subsequent toggles: show chevron, but respect manual close
+    atlasToggleEl.classList.add('visible');
+    if (!atlasManualClose) {
+      atlasPanelEl.classList.remove('collapsed');
+      atlasToggleEl.textContent = '\u2039';
+    }
   }
 
   if (atlasTimeout) clearTimeout(atlasTimeout);
