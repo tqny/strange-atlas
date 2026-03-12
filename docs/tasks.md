@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-BUILD — Atlas Narrator Content (Phase 4)
+BUILD — Overlap / Intersections (Phase 5)
 
 ## Planning Tasks
 
@@ -61,9 +61,9 @@ BUILD — Atlas Narrator Content (Phase 4)
 
 ### Phase 4: Atlas Narrator Content
 
-- [ ] **Write single-category observations** — 10 entries (reduced from 14). Dry, deadpan, 1–3 sentences each.
-- [ ] **Write two-category intersection observations** — Top 20+ combos. Dry, geographic.
-- [ ] **Implement narrator logic** — Lookup by active category combo. Handle 0, 1, 2, 3+ categories.
+- [x] **Write single-category observations** — 10 entries. Dry, deadpan, 1–3 sentences each.
+- [x] **Write two-category intersection observations** — 25 combos. Dry, geographic.
+- [x] **Implement narrator logic** — ATLAS_OBSERVATIONS (single) + ATLAS_INTERSECTIONS (pairs) lookup. Handles 0, 1, 2, 3+ categories. Fade transition with debounce.
 
 ### Phase 5: Overlap / Intersections (Port from preview.html)
 

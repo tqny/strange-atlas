@@ -626,14 +626,72 @@ function buildToggles() {
     togglesEl.appendChild(btn);
   }
 }
+// === ATLAS NARRATOR ===
+const ATLAS_OBSERVATIONS = {
+  'ufo-sightings': '98% United States. Whatever is up there has a strong preference for North American airspace - or North Americans have a strong preference for looking up.',
+  'volcanoes': '170 entries dotted across the Pacific basin, heaviest in the Cascades. A connect-the-dots Ring of Fire - just enough to get the idea, not enough to finish the drawing.',
+  'bigfoot': '97% United States, concentrated in the Pacific Northwest. Bigfoot has apparently never applied for a passport.',
+  'haunted-places': 'Nearly ten thousand, spread across all fifty states with surprising evenness. The living can\'t agree on anything. The dead, apparently, are everywhere.',
+  'meteorites': 'Two-thirds recovered in Antarctica. Then the Sahara, then Oman. They fall everywhere equally - we just find them where nobody\'s built a parking lot.',
+  'ghost-towns': 'Over 18,000, and the majority are in Russia and Eastern Europe. The cowboy ghost town got a gift shop. The Eastern European one just got quieter.',
+  'shipwrecks': 'Nearly half ring the European coastline, with a dense second band along South America. Every century of global trade left receipts on the seafloor.',
+  'earthquakes': 'Exclusively Western Hemisphere in this dataset. Alaska accounts for 60%. The planet\'s most active seismic belt, viewed from the one side that files paperwork about it.',
+  'fireballs': 'Concentrated across Africa, the Middle East, and Southeast Asia. Zero in the Americas. The atmosphere doesn\'t play favorites - but whoever assembled this dataset might.',
+  'thermal-springs': 'The largest clusters sit across Africa and the Middle East, with smaller groupings in Japan, Iceland, New Zealand, and the American West. Wherever the crust runs thin, the planet reminds you there\'s magma under all of this.'
+};
+const ATLAS_INTERSECTIONS = {
+  'haunted-places+ufo-sightings': 'This is the densest overlap on the globe, concentrated across the Southeast, the Northeast-Midwest corridor, and the Pacific Northwest. The map has located the most crowded parts of American unease and stopped there.',
+  'bigfoot+ufo-sightings': 'The overlap runs hard across the rural and suburban US, with the Pacific Northwest doing most of the heavy lifting. Forest edge, exurban fringe, same old arrangement.',
+  'bigfoot+haunted-places': 'The pattern is broad and US-wide, with thick clusters in the Southeast, Northeast-Midwest, and Pacific Northwest. A large share of spooky Americana appears to prefer settled regions with enough woods left over.',
+  'meteorites+ufo-sightings': 'Meteorites are global, UFOs are mostly a US blanket, so the overlap mostly traces the American footprint. The Southeast, Southwest, and Northeast-Midwest all get a turn.',
+  'haunted-places+meteorites': 'The overlap is US-heavy for the usual reason: one dataset travels the world, the other mostly stays home. The Southeast, Northeast-Midwest, and Southwest end up doing the introductions.',
+  'ghost-towns+meteorites': 'This pairing gathers across Western and Eastern Europe into Central Asia, especially in dry and remote terrain. It is a strong map for places where things fall out of the sky and places where people eventually leave.',
+  'bigfoot+meteorites': 'The overlap sits almost entirely inside the US recovery footprint, especially in the Southeast, Northeast-Midwest, and Southwest. One category ranges globally. The other prefers domestic travel.',
+  'ghost-towns+thermal-springs': 'Clusters stretch through Western Europe, Eastern Europe, and Central Asia along old geothermal and mining country. Booms arrive, heat stays, people leave.',
+  'meteorites+thermal-springs': 'The overlap spreads through mid-latitude belts in Western Europe, Eastern Europe, and East Asia. It reads like geology filling out paperwork in several languages.',
+  'ghost-towns+shipwrecks': 'This one hugs Western and Eastern Europe up into Scandinavia, where abandoned ports and failed maritime settlements stack up near wreck-heavy coasts. Trade routes age badly.',
+  'meteorites+shipwrecks': 'The overlap is broad but coastal, with stronger concentrations in Western Europe, Scandinavia, and the Northeast US. Land and sea are both running a fairly loose inventory system.',
+  'shipwrecks+thermal-springs': 'The pattern appears around volcanic and tectonic coasts, especially in Western Europe, Eastern Europe, and parts of South America. Some shorelines offer hot water and poor docking conditions.',
+  'shipwrecks+ufo-sightings': 'The overlap gathers along the Northeast US, Southeast US, and Pacific Northwest, with smaller echoes around other busy coasts. Maritime hazard and coastal reporting habits make a decent team.',
+  'earthquakes+ufo-sightings': 'The pattern leans toward the western US, especially the Southwest and Pacific Northwest, with some spill into the Southeast. A fair amount of overlap occurs where the ground already has a reputation.',
+  'haunted-places+shipwrecks': 'The overlap favors old coastal settlement belts, especially New England, the Gulf Coast, and the Pacific Northwest. Ports accumulate history, then history declines to leave.',
+  'ghost-towns+ufo-sightings': 'The strongest overlap lands in the western US desert, with smaller clusters in the Northeast and Pacific Northwest. Remote terrain and eerie vacancy continue to perform reliably.',
+  'bigfoot+shipwrecks': 'The overlap sits around the Pacific Northwest, the Northeast, and parts of the Southeast, where forested coasts meet wreck-prone waters. Shoreline fog is once again contributing more than necessary.',
+  'earthquakes+haunted-places': 'The pairing clusters in the Southwest, Pacific Northwest, and parts of the Southeast where historic settlement overlaps seismic terrain. Older buildings and moving ground remain an unhelpful combination.',
+  'bigfoot+earthquakes': 'Most of the overlap sits in the Pacific Northwest, with smaller clusters in the Southwest and Southeast. The Pacific Northwest continues to specialize.',
+  'ghost-towns+haunted-places': 'The overlap spreads through the US West, Midwest, and Southeast, with especially visible clusters in the Southwest. Some places leave the population behind and keep the stories.',
+  'bigfoot+ghost-towns': 'Clusters appear in the Pacific Northwest, the Northeast, and the Southwest where abandoned settlements meet forested or mountainous terrain. It is a tidy arrangement for avoiding witnesses.',
+  'fireballs+meteorites': 'This is one of the cleaner pairings, concentrated in North and West Africa, East Asia, and Western Europe. The sky event and the ground record are, for once, cooperating.',
+  'earthquakes+volcanoes': 'The overlap is tight and geologically honest, centered on the Pacific Northwest and Southwest US along active plate boundaries. The crust is being quite direct here.',
+  'thermal-springs+volcanoes': 'This overlap is smaller but real, concentrated in the Pacific Northwest and Southwest where volcanic heat reaches the surface. Some maps barely bother with metaphor.',
+  'bigfoot+fireballs': 'There is no overlap at all, and this appears to be a dataset border issue rather than a planetary truth. One stays in the Western Hemisphere, the other in the Eastern, so the globe contains a diplomatic gap.'
+};
 let atlasPromptDismissed = false;
+let atlasTimeout = null;
 function updateAtlasText() {
-  if(!atlasPromptDismissed && activeCategories.size > 0) {
-    atlasPromptDismissed = true;
-    atlasTextEl.style.transition = 'opacity 0.4s ease';
-    atlasTextEl.style.opacity = '0';
-    setTimeout(() => { atlasTextEl.textContent = ''; }, 400);
+  let newText = '';
+  const active = Array.from(activeCategories);
+  if (active.length === 0) newText = '';
+  else if (active.length === 1) newText = ATLAS_OBSERVATIONS[active[0]] || '';
+  else if (active.length === 2) {
+    const key = active.sort().join('+');
+    newText = ATLAS_INTERSECTIONS[key] || '';
+  } else {
+    newText = '';
   }
+
+  if (!atlasPromptDismissed && active.length > 0) {
+    atlasPromptDismissed = true;
+  }
+
+  if (atlasTimeout) clearTimeout(atlasTimeout);
+  atlasTextEl.style.transition = 'opacity 0.3s ease';
+  atlasTextEl.style.opacity = '0';
+  atlasTimeout = setTimeout(() => {
+    atlasTextEl.textContent = newText;
+    atlasTextEl.style.opacity = newText ? '1' : '0';
+    atlasTimeout = null;
+  }, 300);
 }
 
 // === LANDING WAVE ANIMATION ===

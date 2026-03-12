@@ -55,6 +55,8 @@ globe-template.html          ← edit this (source of truth)
 
 11. **Ambient Ripple** — Radial pond-ripple on continent dots. Computed in vertex shader: dots scale 2.5× and flash toward white at the wave front. Random origin each cycle, continuous. First ripple begins seamlessly from the east coast when the landing wave finishes.
 
+12. **Atlas Narrator** — Two static lookup objects: `ATLAS_OBSERVATIONS` (10 single-category entries) and `ATLAS_INTERSECTIONS` (25 two-category pair entries, keyed by alphabetically sorted `id+id`). `updateAtlasText()` resolves active category count (0=clear, 1=single, 2=pair, 3+=clear) and crossfades the panel text with a 0.3s opacity transition. Debounced via `clearTimeout` to handle rapid toggles.
+
 ## Data
 
 - **Source:** `strange_places_v5.2.json` (CC BY 4.0, 354K records, 14 original categories)

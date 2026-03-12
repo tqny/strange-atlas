@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**BUILD — Atlas Narrator Content (Phase 4)**
+**BUILD — Overlap / Intersections (Phase 5)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -17,12 +17,11 @@ Update this field as the project advances.
 
 ## What To Do Right Now
 
-Phase 3 (Globe Design Iteration) is complete. Next up:
+Phase 4 (Atlas Narrator Content) is complete. Next up:
 
-1. **Write single-category observations** — 10 entries, dry/deadpan, 1–3 sentences each.
-2. **Write two-category intersection observations** — Top 20+ combos, dry/geographic.
-3. **Implement narrator logic** — Lookup by active category combo. Handle 0, 1, 2, 3+ categories.
-4. Then Phase 5 (port Intersections mode from preview.html).
+1. **Port overlap detection to globe** — Haversine distance + spatial grid from preview.html. 150km radius.
+2. **Intersection rendering on globe** — Filter to overlap points, visual distinction.
+3. **Intersection UX refinement** — Animate transition, improve visual distinction.
 
 ---
 
