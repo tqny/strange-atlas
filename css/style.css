@@ -1,0 +1,186 @@
+/* === TOKENS === */
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-continent: #2a2a2a;
+  --bg-continent-dim: #1a1a1a;
+
+  --color-ufo: #4FC3C3;
+  --color-volcanoes: #E8863A;
+  --color-bigfoot: #5A8A5A;
+  --color-haunted: #9B7BB8;
+  --color-megaliths: #C4A96B;
+  --color-meteorites: #C8C8C8;
+  --color-tornadoes: #5A7A9B;
+  --color-caves: #A0614A;
+  --color-ghost-towns: #B87878;
+  --color-shipwrecks: #3A8A8A;
+  --color-earthquakes: #B89B3A;
+  --color-fireballs: #D4623A;
+  --color-thermal: #6A9B6A;
+  --color-storms: #7A8A9B;
+
+  --text-primary: #e0e0e0;
+  --text-dim: #666;
+  --text-atlas: #999;
+
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+/* === RESET === */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+/* === CANVAS === */
+#map-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* === WORDMARK === */
+#wordmark {
+  position: fixed;
+  top: 28px;
+  left: 32px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#wordmark h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  opacity: 0.85;
+}
+
+/* === CONTROLS === */
+#controls {
+  position: fixed;
+  top: 50%;
+  left: 28px;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.toggle-btn.active {
+  color: var(--text-primary);
+}
+
+.toggle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0.3;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggle-btn.active .toggle-dot {
+  opacity: 1;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* === ATLAS PANEL === */
+#atlas-panel {
+  position: fixed;
+  bottom: 28px;
+  left: 32px;
+  right: 32px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#atlas-text {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--text-atlas);
+  line-height: 1.6;
+  max-width: 560px;
+  transition: opacity 0.3s ease;
+}
+
+/* === TOOLTIP === */
+#tooltip {
+  position: fixed;
+  z-index: 20;
+  background: rgba(15, 15, 15, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  max-width: 280px;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  transition: opacity 0.15s ease;
+}
+
+#tooltip.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#tooltip-name {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+#tooltip-meta {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+#tooltip-desc {
+  font-size: 0.72rem;
+  color: var(--text-atlas);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
