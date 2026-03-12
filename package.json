@@ -1,0 +1,26 @@
+{
+  "name": "strange-atlas",
+  "version": "1.0.0",
+  "description": "An interactive world map visualizing 354,770 real mysterious phenomena — UFO sightings, bigfoot encounters, haunted places, volcanoes, megaliths, shipwrecks, and more — rendered as a dot-matrix dark editorial experience.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tqny/strange-atlas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tqny/strange-atlas/issues"
+  },
+  "homepage": "https://github.com/tqny/strange-atlas#readme",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}

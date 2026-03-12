@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**PLAN**
+**BUILD — Globe Design Iteration (Phase 3)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -17,12 +17,11 @@ Update this field as the project advances.
 
 ## What To Do Right Now
 
-Planning package is complete. All docs are populated. Next steps:
+Globe prototype is working with dot-matrix continents, country borders, atmosphere glow, and all 10 categories wired. Currently iterating on visual design and polish. Next steps:
 
-1. Review the planning docs with Tony — confirm spec, architecture, task order, and design direction.
-2. Once confirmed, transition to **BUILD** phase.
-3. Start with **Phase 0: Data Preparation** — acquire source data, write the split script, get the world GeoJSON.
-4. Then move to **Phase 1: Map Prototype** — this is the highest-risk work. Everything depends on the dot-matrix canvas render working well.
+1. **Category point styling** — test toggling all 10 categories, tune glow/size/color.
+2. **Landing state polish** — wordmark, opening text, idle animation.
+3. Then move to Phase 4 (Atlas narrator content) and Phase 5 (port Intersections mode from preview.html).
 
 ---
 
@@ -52,12 +51,13 @@ For any thread picking up this project:
 
 ## Key Technical Notes
 
-- **Canvas rendering** — all map drawing is custom Canvas API. No tile libraries (Leaflet, Mapbox).
-- **D3-geo** — used only for equirectangular projection math, not for rendering.
-- **Data loading** — pre-split JSON files per category, loaded on demand. Source: `strange_places_v5.2.json`.
-- **Performance** — tornado category has ~70K points. May need thinning/LOD.
-- **Atlas narrator** — pre-scripted in MVP. Module designed as clean swap point for Phase 2 Claude API.
-- **Design** — Tony is driving design direction with inspiration references. Design doc is intentionally loose.
+- **Three.js globe** — InstancedMesh for dot-matrix continents and category points. ShaderMaterial with silhouette discard for clean edges. Atmosphere glow via Fresnel rim shader.
+- **Template/build system** — `globe-template.html` + `scripts/build-globe.py` → `globe-preview.html` (~21MB). All data inlined. Edit the template, not the built file.
+- **TopoJSON** — Custom decoder (no D3 dependency). `world-110m.json` for land PIP, `countries-110m.json` for borders.
+- **Antimeridian handling** — Polygons wrapping ±180° break PIP ray-casting. Handled by `splitAtAntimeridian()` (2-wrap-edge, e.g. Eurasia) and `fixPolarPoly()` (1-wrap-edge, e.g. Antarctica). See inline comments in `globe-template.html`.
+- **Data** — 10 categories, ~99K total points. Pre-split JSON in `data/`. Source: `strange_places_v5.2.json`.
+- **Atlas narrator** — pre-scripted in MVP. Designed as swap point for Phase 2 Claude API.
+- **Future pages** — Dashboard (statistical analysis) and About (in-product reviewer brief) are planned as future phases. Current globe will become one page of a multi-page site.
 
 ---
 
@@ -69,6 +69,8 @@ Before ending any session:
 2. Update this file's "Current Phase" if it changed.
 3. If architecture or design decisions were made, update the relevant doc.
 4. Note anything a new thread needs to know that isn't captured in docs.
+
+**Creep guard:** AGENTS.md stays forward-looking — no completed-task narratives. tasks.md records *what* was done (one sentence). Technical *how* goes in architecture.md or code comments. If you're writing root-cause analysis in a task description, it's in the wrong place.
 
 ---
 

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strange Atlas — Globe Preview</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+:root { --bg: #f5f5f5; --text: #1a1a1a; --text-dim: #999; --text-mid: #666; --panel-bg: rgba(255,255,255,0.85); }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+#globe-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+canvas { display: block; }
+#wordmark { position: fixed; top: 32px; left: 36px; z-index: 10; pointer-events: none; }
+#wordmark h1 { font-weight: 600; font-size: 1.4rem; letter-spacing: -0.01em; color: var(--text); }
+#wordmark .subtitle { font-weight: 300; font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.03em; }
+#controls { position: fixed; top: 50%; right: 36px; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: column; gap: 2px; }
+.toggle-btn { display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 400; color: var(--text-dim); letter-spacing: 0.01em; transition: color 0.2s ease; text-align: right; white-space: nowrap; flex-direction: row-reverse; }
+.toggle-btn:hover { color: var(--text); }
+.toggle-btn.active { color: var(--text); font-weight: 500; }
+.toggle-dot { width: 8px; height: 8px; border-radius: 50%; opacity: 0.3; transition: opacity 0.2s ease, box-shadow 0.2s ease; flex-shrink: 0; }
+.toggle-btn.active .toggle-dot { opacity: 1; box-shadow: 0 0 6px currentColor; }
+.toggle-count { font-size: 0.62rem; color: var(--text-dim); font-weight: 300; min-width: 36px; text-align: right; }
+#atlas-panel { position: fixed; bottom: 32px; left: 36px; right: 36px; z-index: 10; pointer-events: none; }
+#atlas-text { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); line-height: 1.6; max-width: 480px; }
+#tooltip { position: fixed; z-index: 20; background: var(--panel-bg); border: 1px solid rgba(0,0,0,0.08); padding: 10px 14px; max-width: 280px; pointer-events: none; backdrop-filter: blur(12px); border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+#tooltip.hidden { opacity: 0; visibility: hidden; }
+#tooltip-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+#tooltip-meta { font-size: 0.66rem; color: var(--text-dim); margin-bottom: 5px; }
+#tooltip-desc { font-size: 0.7rem; color: var(--text-mid); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="globe-container"></div>
+<header id="wordmark"><h1>Strange Atlas</h1><div class="subtitle">98,775 phenomena across 10 categories</div></header>
+<aside id="controls"><div id="category-toggles"></div></aside>
+<footer id="atlas-panel"><p id="atlas-text">Select a category to begin.</p></footer>
+<div id="tooltip" class="hidden"><div id="tooltip-name"></div><div id="tooltip-meta"></div><div id="tooltip-desc"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// === INLINE DATA (injected by build) ===
+%%INLINE_DATA%%
+
+// === CONFIG ===
+const GLOBE_RADIUS = 1.0;
+const DOT_SPACING = 0.4;    // degrees between continent dots (smaller = denser)
+const DOT_RADIUS = 0.0015;  // size of each continent dot
+const CAT_DOT_RADIUS = 0.007; // size of category data dots
+
+const CATEGORIES = [
+  { id: 'volcanoes', display: 'Volcanoes', color: '#E8863A' },
+  { id: 'shipwrecks', display: 'Shipwrecks', color: '#2A7A7A' },
+  { id: 'bigfoot', display: 'Bigfoot', color: '#5A8A5A' },
+  { id: 'fireballs', display: 'Fireballs', color: '#D4623A' },
+  { id: 'earthquakes', display: 'Earthquakes', color: '#B89B3A' },
+  { id: 'thermal-springs', display: 'Thermal Springs', color: '#6A9B6A' },
+  { id: 'haunted-places', display: 'Haunted Places', color: '#9B7BB8' },
+  { id: 'meteorites', display: 'Meteorites', color: '#888' },
+  { id: 'ufo-sightings', display: 'UFO Sightings', color: '#4FC3C3' },
+  { id: 'ghost-towns', display: 'Ghost Towns', color: '#B87878' },
+];
+CATEGORIES.forEach(c => c.count = (CATEGORY_DATA[c.id] || []).length);
+
+// === THREE.JS SETUP ===
+const container = document.getElementById('globe-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf5f5f5);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 0.2, 3.0);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+
+// === GLOBE GROUP ===
+const globeGroup = new THREE.Group();
+scene.add(globeGroup);
+
+// Globe sphere — very light, clean
+const globeMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64),
+  new THREE.MeshBasicMaterial({ color: 0xeeeeee })
+);
+globeGroup.add(globeMesh);
+
+// Graticule removed — country borders provide enough structure
+
+// === ATMOSPHERE GLOW ===
+// Soft ocean-blue halo around the globe edge using a Fresnel (rim-light) shader.
+// A slightly larger sphere, rendered behind the globe, glows at the silhouette.
+const atmosphereMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64),
+  new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.BackSide,
+    uniforms: {
+      uGlowColor: { value: new THREE.Color(0x8ecae6) }, // light ocean blue
+      uIntensity: { value: 0.45 },
+      uPower: { value: 6.0 }
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      void main() {
+        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+        vNormal = normalize(normalMatrix * normal);
+        vViewDir = normalize(cameraPosition - worldPos.xyz);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uGlowColor;
+      uniform float uIntensity;
+      uniform float uPower;
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      void main() {
+        float rim = 1.0 - abs(dot(vNormal, vViewDir));
+        float glow = pow(rim, uPower) * uIntensity;
+        gl_FragColor = vec4(uGlowColor, glow);
+      }
+    `
+  })
+);
+atmosphereMesh.scale.setScalar(1.04);
+globeGroup.add(atmosphereMesh);
+
+// === SILHOUETTE-AWARE MATERIALS ===
+// Dots/borders sit above the globe surface. At the sphere's silhouette edge,
+// they peek above the outline creating visible artifacts. These shaders discard
+// fragments near the silhouette by checking the dot product of the surface
+// normal (= normalized world position for a centered sphere) and view direction.
+
+function createDotMaterial(color) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthTest: true,
+    uniforms: { uColor: { value: new THREE.Color(color) } },
+    vertexShader: `
+      varying float vFacing;
+      void main() {
+        vec4 pos = vec4(position, 1.0);
+        #ifdef USE_INSTANCING
+          pos = instanceMatrix * pos;
+        #endif
+        vec4 worldPos = modelMatrix * pos;
+        vec3 norm = normalize(worldPos.xyz);
+        vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
+        vFacing = dot(norm, viewDir);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying float vFacing;
+      void main() {
+        if (vFacing < 0.1) discard;
+        float alpha = smoothstep(0.1, 0.4, vFacing);
+        gl_FragColor = vec4(uColor, alpha);
+      }
+    `
+  });
+}
+
+function createBorderMaterial(color, opacity) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthTest: true,
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uOpacity: { value: opacity }
+    },
+    vertexShader: `
+      varying float vFacing;
+      void main() {
+        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+        vec3 norm = normalize(worldPos.xyz);
+        vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
+        float f = dot(norm, viewDir);
+        // Snap silhouette vertices to large negative — prevents interpolation
+        // from leaving visible line stubs at the globe edge
+        vFacing = f < 0.35 ? -10.0 : f;
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      varying float vFacing;
+      void main() {
+        if (vFacing < 0.35) discard;
+        float fade = smoothstep(0.35, 0.5, vFacing);
+        gl_FragColor = vec4(uColor, uOpacity * fade);
+      }
+    `
+  });
+}
+
+// === HELPERS ===
+function latLngToVec3(lat, lng, r) {
+  const phi = (90 - lat) * Math.PI / 180, theta = (lng + 180) * Math.PI / 180;
+  return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
+}
+
+// === TOPOJSON ===
+function topoToPolygons(topo, name) {
+  const obj = topo.objects[name], arcs = topo.arcs, tf = topo.transform;
+  function decArc(ai) {
+    const rev = ai < 0, idx = rev ? ~ai : ai, raw = arcs[idx], c = []; let x=0,y=0;
+    for (const p of raw) { x+=p[0]; y+=p[1]; c.push([tf?x*tf.scale[0]+tf.translate[0]:x, tf?y*tf.scale[1]+tf.translate[1]:y]); }
+    return rev ? c.reverse() : c;
+  }
+  function decRing(r) { let c=[]; for (const a of r) { const d=decArc(a); if(c.length)d.shift(); c=c.concat(d); } return c; }
+  function ext(g) {
+    if(g.type==='Polygon') return [g.arcs.map(decRing)];
+    if(g.type==='MultiPolygon') return g.arcs.map(p=>p.map(decRing));
+    if(g.type==='GeometryCollection') { const o=[]; for(const gg of g.geometries) o.push(...ext(gg)); return o; }
+    return [];
+  }
+  return ext(obj);
+}
+function pip(lng,lat,ring) {
+  let ins=false;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++) {
+    const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+    if((yi>lat)!==(yj>lat)&&lng<(xj-xi)*(lat-yi)/(yj-yi)+xi) ins=!ins;
+  }
+  return ins;
+}
+// Split a polygon ring that wraps the antimeridian (|edge dx| > 180°) into
+// two sub-rings, one on each side of ±180°. This fixes PIP ray-casting which
+// produces wrong parity counts when edges span from +179° to -179° etc.
+// Returns [ringA, ringB] if split, or null if the ring has ≠ 2 wrapping edges.
+function splitAtAntimeridian(ring) {
+  const wraps = [];
+  for (let i = 0; i < ring.length; i++) {
+    const j = i === 0 ? ring.length - 1 : i - 1;
+    if (Math.abs(ring[i][0] - ring[j][0]) > 180) {
+      const x0 = ring[j][0], y0 = ring[j][1], x1 = ring[i][0], y1 = ring[i][1];
+      let crossLat, sideFrom, sideTo;
+      if (x0 > 0) {
+        crossLat = y0 + (180 - x0) / (x1 + 360 - x0) * (y1 - y0);
+        sideFrom = 180; sideTo = -180;
+      } else {
+        crossLat = y0 + (-180 - x0) / (x1 - 360 - x0) * (y1 - y0);
+        sideFrom = -180; sideTo = 180;
+      }
+      wraps.push({ vertIdx: i, prevIdx: j, crossLat, sideFrom, sideTo });
+    }
+  }
+  if (wraps.length !== 2) return null;
+  function extractRange(fromIdx, toIdx) {
+    const r = []; let idx = fromIdx;
+    while (true) { r.push(ring[idx]); if (idx === toIdx) break; idx = (idx + 1) % ring.length; }
+    return r;
+  }
+  const [w0, w1] = wraps;
+  return [
+    [[w0.sideTo, w0.crossLat], ...extractRange(w0.vertIdx, w1.prevIdx), [w1.sideFrom, w1.crossLat]],
+    [[w1.sideTo, w1.crossLat], ...extractRange(w1.vertIdx, w0.prevIdx), [w0.sideFrom, w0.crossLat]]
+  ];
+}
+// Fix a polar polygon that circumnavigates a pole with exactly 1 wrapping edge.
+// Replaces the wrapping edge with a detour through the South Pole (lat -90),
+// closing the polygon correctly for PIP ray-casting.
+function fixPolarPoly(ring) {
+  let wrapIdx = -1;
+  for (let i = 0; i < ring.length; i++) {
+    const j = i === 0 ? ring.length - 1 : i - 1;
+    if (Math.abs(ring[i][0] - ring[j][0]) > 180) { wrapIdx = i; break; }
+  }
+  if (wrapIdx < 0) return ring;
+  const prevIdx = wrapIdx === 0 ? ring.length - 1 : wrapIdx - 1;
+  const xPrev = ring[prevIdx][0], yPrev = ring[prevIdx][1];
+  const xWrap = ring[wrapIdx][0], yWrap = ring[wrapIdx][1];
+  let crossLat;
+  if (xPrev > 0) {
+    crossLat = yPrev + (180 - xPrev) / (xWrap + 360 - xPrev) * (yWrap - yPrev);
+  } else {
+    crossLat = yPrev + (-180 - xPrev) / (xWrap - 360 - xPrev) * (yWrap - yPrev);
+  }
+  const newRing = [];
+  for (let i = 0; i <= prevIdx; i++) newRing.push(ring[i]);
+  if (xPrev > 0) {
+    newRing.push([180, crossLat]);
+    newRing.push([180, -90]);
+    newRing.push([-180, -90]);
+    newRing.push([-180, crossLat]);
+  } else {
+    newRing.push([-180, crossLat]);
+    newRing.push([-180, -90]);
+    newRing.push([180, -90]);
+    newRing.push([180, crossLat]);
+  }
+  for (let i = wrapIdx; i < ring.length; i++) newRing.push(ring[i]);
+  return newRing;
+}
+// Build land polygon set: filter small wrapping islands (Fiji, Arctic islet),
+// split 2-wrap-edge polygons (Eurasia) at the antimeridian, and fix 1-wrap-edge
+// polar polygons (Antarctica) by routing through the South Pole.
+const landPolygons = (function() {
+  const raw = topoToPolygons(WORLD_TOPO, 'land').filter(poly => {
+    const outer = poly[0];
+    const lngs = outer.map(pt => pt[0]);
+    if (Math.max(...lngs) - Math.min(...lngs) > 300 && outer.length < 100) return false; // Fiji, Arctic islet
+    return true;
+  });
+  const result = [];
+  for (const poly of raw) {
+    const outer = poly[0];
+    let wrapCount = 0;
+    for (let a = 0, b = outer.length - 1; a < outer.length; b = a++) {
+      if (Math.abs(outer[a][0] - outer[b][0]) > 180) wrapCount++;
+    }
+    if (wrapCount === 2) {
+      const splits = splitAtAntimeridian(outer);
+      if (splits) {
+        const holes = [];
+        for (let h = 1; h < poly.length; h++) holes.push(poly[h]);
+        for (const splitRing of splits) {
+          const newPoly = [splitRing];
+          for (const hole of holes) {
+            const hAvg = hole.reduce((s, p) => s + p[0], 0) / hole.length;
+            const sMin = Math.min(...splitRing.map(p => p[0]));
+            const sMax = Math.max(...splitRing.map(p => p[0]));
+            if (hAvg >= sMin && hAvg <= sMax) newPoly.push(hole);
+          }
+          result.push(newPoly);
+        }
+      } else {
+        result.push(poly);
+      }
+    } else if (wrapCount === 1) {
+      result.push([fixPolarPoly(outer), ...poly.slice(1)]);
+    } else {
+      result.push(poly);
+    }
+  }
+  return result;
+})();
+function isLand(lng,lat) {
+  for(const poly of landPolygons) {
+    if(pip(lng,lat,poly[0])) { let hole=false; for(let h=1;h<poly.length;h++) if(pip(lng,lat,poly[h])){hole=true;break;} if(!hole) return true; }
+  }
+  return false;
+}
+
+// === CONTINENT DOTS ===
+let continentDotMesh = null;
+const BASE_ZOOM = 3.0; // reference camera distance
+
+function buildContinentDots() {
+  const sp = DOT_SPACING, pos = [];
+  for (let lat=-89; lat<=85; lat+=sp) {
+    const lsp = sp / Math.cos(lat * Math.PI / 180);
+    for (let lng=-180; lng<180; lng+=lsp) {
+      if (isLand(lng, lat)) pos.push(latLngToVec3(lat, lng, GLOBE_RADIUS + 0.0015));
+    }
+  }
+  const geo = new THREE.SphereGeometry(DOT_RADIUS, 4, 3);
+  const mat = createDotMaterial(0xc0c0c0);
+  continentDotMesh = new THREE.InstancedMesh(geo, mat, pos.length);
+  const d = new THREE.Object3D();
+  for (let i=0; i<pos.length; i++) { d.position.copy(pos[i]); d.updateMatrix(); continentDotMesh.setMatrixAt(i, d.matrix); }
+  globeGroup.add(continentDotMesh);
+  console.log('Continent dots:', pos.length);
+}
+
+// === COUNTRY BORDERS ===
+function buildCountryBorders() {
+  // Decode all country polygon rings from countries TopoJSON
+  const topo = COUNTRIES_TOPO, arcsData = topo.arcs, tf = topo.transform;
+  function decArc(ai) {
+    const rev = ai < 0, idx = rev ? ~ai : ai, raw = arcsData[idx], c = []; let x=0,y=0;
+    for (const p of raw) { x+=p[0]; y+=p[1]; c.push([tf?x*tf.scale[0]+tf.translate[0]:x, tf?y*tf.scale[1]+tf.translate[1]:y]); }
+    return rev ? c.reverse() : c;
+  }
+  function decRing(r) { let c=[]; for (const a of r) { const d=decArc(a); if(c.length)d.shift(); c=c.concat(d); } return c; }
+  function getRings(geom) {
+    if (geom.type==='Polygon') return geom.arcs.map(decRing);
+    if (geom.type==='MultiPolygon') { const r=[]; for(const p of geom.arcs) for(const ring of p) r.push(decRing(ring)); return r; }
+    return [];
+  }
+  // Render each arc exactly once to avoid double-drawing shared borders
+  // (shared borders appear in two countries' geometries, causing darker overlap)
+  const verts = [];
+  const R = GLOBE_RADIUS + 0.001;
+  for (let ai = 0; ai < arcsData.length; ai++) {
+    const pts = decArc(ai);
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (pts[i][1] < -89 || pts[i+1][1] < -89) continue;
+      const a = latLngToVec3(pts[i][1], pts[i][0], R);
+      const b = latLngToVec3(pts[i+1][1], pts[i+1][0], R);
+      verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  const mat = createBorderMaterial(0xaaaaaa, 0.45);
+  globeGroup.add(new THREE.LineSegments(geo, mat));
+  console.log('Country borders: %d segments', verts.length / 6);
+}
+
+// === CATEGORY POINTS ===
+const categoryMeshes = {};
+const activeCategories = new Set();
+function addCategory(id, data, color) {
+  const geo = new THREE.SphereGeometry(CAT_DOT_RADIUS, 5, 4);
+  const mat = createDotMaterial(color);
+  const mesh = new THREE.InstancedMesh(geo, mat, data.length);
+  const d = new THREE.Object3D();
+  for (let i=0; i<data.length; i++) {
+    d.position.copy(latLngToVec3(data[i].latitude, data[i].longitude, GLOBE_RADIUS + 0.004));
+    d.updateMatrix(); mesh.setMatrixAt(i, d.matrix);
+  }
+  mesh.visible = false;
+  globeGroup.add(mesh);
+  categoryMeshes[id] = mesh;
+}
+for (const cat of CATEGORIES) { const d = CATEGORY_DATA[cat.id]; if(d) addCategory(cat.id, d, cat.color); }
+
+// === MOUSE ROTATE ===
+let isDragging=false, prevMouse={x:0,y:0}, velocity={x:0,y:0}, autoRotate=true;
+renderer.domElement.addEventListener('mousedown', e => { isDragging=true; autoRotate=false; prevMouse={x:e.clientX,y:e.clientY}; velocity={x:0,y:0}; });
+renderer.domElement.addEventListener('mousemove', e => {
+  if(!isDragging) return;
+  velocity = { x:(e.clientX-prevMouse.x)*0.004, y:(e.clientY-prevMouse.y)*0.004 };
+  globeGroup.rotation.y += velocity.x; globeGroup.rotation.x += velocity.y;
+  globeGroup.rotation.x = Math.max(-1.2, Math.min(1.2, globeGroup.rotation.x));
+  prevMouse = {x:e.clientX, y:e.clientY};
+});
+renderer.domElement.addEventListener('mouseup', () => isDragging=false);
+renderer.domElement.addEventListener('mouseleave', () => isDragging=false);
+renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); camera.position.z = Math.max(2.2, Math.min(6, camera.position.z + e.deltaY*0.002)); }, {passive:false});
+
+// === ANIMATE ===
+function animate() {
+  requestAnimationFrame(animate);
+  if (autoRotate) globeGroup.rotation.y += 0.0008;
+  if (!isDragging) { velocity.x*=0.95; velocity.y*=0.95; globeGroup.rotation.y+=velocity.x; globeGroup.rotation.x+=velocity.y; globeGroup.rotation.x=Math.max(-1.2,Math.min(1.2,globeGroup.rotation.x)); }
+
+  renderer.render(scene, camera);
+}
+window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
+
+// === UI ===
+const togglesEl = document.getElementById('category-toggles');
+const atlasTextEl = document.getElementById('atlas-text');
+function buildToggles() {
+  for (const cat of CATEGORIES) {
+    const btn = document.createElement('button'); btn.className='toggle-btn'; btn.dataset.id=cat.id;
+    const dot = document.createElement('span'); dot.className='toggle-dot'; dot.style.backgroundColor=cat.color; dot.style.color=cat.color;
+    const label = document.createElement('span'); label.textContent=cat.display;
+    const count = document.createElement('span'); count.className='toggle-count'; count.textContent=cat.count.toLocaleString();
+    btn.appendChild(count); btn.appendChild(label); btn.appendChild(dot);
+    btn.addEventListener('click', () => {
+      if(activeCategories.has(cat.id)){activeCategories.delete(cat.id); if(categoryMeshes[cat.id])categoryMeshes[cat.id].visible=false;}
+      else{activeCategories.add(cat.id); if(categoryMeshes[cat.id])categoryMeshes[cat.id].visible=true;}
+      for(const b of togglesEl.querySelectorAll('.toggle-btn')) b.classList.toggle('active',activeCategories.has(b.dataset.id));
+      updateAtlasText();
+    });
+    togglesEl.appendChild(btn);
+  }
+}
+function updateAtlasText() {
+  const ids=[...activeCategories];
+  if(!ids.length){atlasTextEl.textContent='Select a category to begin.'; return;}
+  const names=ids.map(id=>CATEGORIES.find(c=>c.id===id)?.display||id);
+  const total=ids.reduce((s,id)=>s+(CATEGORY_DATA[id]?.length||0),0);
+  atlasTextEl.textContent=names.join(' + ')+'. '+total.toLocaleString()+' records.';
+}
+
+// === INIT ===
+buildContinentDots();
+buildCountryBorders();
+buildToggles();
+animate();
+console.log('Globe initialized');
+</script>
+</body>
+</html>
