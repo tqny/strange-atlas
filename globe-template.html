@@ -14,13 +14,18 @@ canvas { display: block; }
 #wordmark { position: fixed; top: 32px; left: 36px; z-index: 10; pointer-events: none; }
 #wordmark h1 { font-weight: 600; font-size: 1.4rem; letter-spacing: -0.01em; color: var(--text); }
 #wordmark .subtitle { font-weight: 300; font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.03em; }
-#controls { position: fixed; top: 50%; right: 36px; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: column; gap: 2px; }
-.toggle-btn { display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 400; color: var(--text-dim); letter-spacing: 0.01em; transition: color 0.2s ease; text-align: right; white-space: nowrap; flex-direction: row-reverse; }
+#controls { position: fixed; top: 50%; left: 0; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: row; align-items: flex-start; transition: transform 0.3s ease; padding-left: 36px; }
+#controls.collapsed { transform: translateY(-50%) translateX(calc(-100% + 36px)); }
+#controls.collapsed #category-toggles { opacity: 0; pointer-events: none; }
+#category-toggles { display: flex; flex-direction: column; gap: 2px; transition: opacity 0.2s ease; }
+#controls-toggle { background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 400; color: var(--text-mid); padding: 8px 10px; transition: color 0.2s ease; align-self: center; flex-shrink: 0; }
+#controls-toggle:hover { color: var(--text); }
+.toggle-btn { display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 400; color: var(--text-dim); letter-spacing: 0.01em; transition: color 0.2s ease; text-align: left; white-space: nowrap; }
 .toggle-btn:hover { color: var(--text); }
 .toggle-btn.active { color: var(--text); font-weight: 500; }
 .toggle-dot { width: 8px; height: 8px; border-radius: 50%; opacity: 0.3; transition: opacity 0.2s ease, box-shadow 0.2s ease; flex-shrink: 0; }
 .toggle-btn.active .toggle-dot { opacity: 1; box-shadow: 0 0 6px currentColor; }
-.toggle-count { font-size: 0.62rem; color: var(--text-dim); font-weight: 300; min-width: 36px; text-align: right; }
+.toggle-count { font-size: 0.62rem; color: var(--text-dim); font-weight: 300; min-width: 36px; text-align: left; }
 #atlas-panel { position: fixed; bottom: 32px; left: 36px; right: 36px; z-index: 10; pointer-events: none; }
 #atlas-text { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); line-height: 1.6; max-width: 480px; }
 #tooltip { position: fixed; z-index: 20; background: var(--panel-bg); border: 1px solid rgba(0,0,0,0.08); padding: 10px 14px; max-width: 280px; pointer-events: none; backdrop-filter: blur(12px); border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
@@ -33,7 +38,7 @@ canvas { display: block; }
 <body>
 <div id="globe-container"></div>
 <header id="wordmark"><h1>Strange Atlas</h1><div class="subtitle">98,775 phenomena across 10 categories</div></header>
-<aside id="controls"><div id="category-toggles"></div></aside>
+<aside id="controls" class="collapsed"><div id="category-toggles"></div><button id="controls-toggle" aria-label="Toggle categories">›</button></aside>
 <footer id="atlas-panel"><p id="atlas-text">Select a category to begin.</p></footer>
 <div id="tooltip" class="hidden"><div id="tooltip-name"></div><div id="tooltip-meta"></div><div id="tooltip-desc"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -48,16 +53,16 @@ const DOT_RADIUS = 0.0015;  // size of each continent dot
 const CAT_DOT_RADIUS = 0.007; // size of category data dots
 
 const CATEGORIES = [
-  { id: 'volcanoes', display: 'Volcanoes', color: '#E8863A' },
-  { id: 'shipwrecks', display: 'Shipwrecks', color: '#2A7A7A' },
-  { id: 'bigfoot', display: 'Bigfoot', color: '#5A8A5A' },
-  { id: 'fireballs', display: 'Fireballs', color: '#D4623A' },
-  { id: 'earthquakes', display: 'Earthquakes', color: '#B89B3A' },
-  { id: 'thermal-springs', display: 'Thermal Springs', color: '#6A9B6A' },
-  { id: 'haunted-places', display: 'Haunted Places', color: '#9B7BB8' },
-  { id: 'meteorites', display: 'Meteorites', color: '#888' },
-  { id: 'ufo-sightings', display: 'UFO Sightings', color: '#4FC3C3' },
-  { id: 'ghost-towns', display: 'Ghost Towns', color: '#B87878' },
+  { id: 'volcanoes', display: 'Volcanoes', color: '#E8632B', radius: 0.0015 },
+  { id: 'shipwrecks', display: 'Shipwrecks', color: '#1B6B8A', radius: 0.0012 },
+  { id: 'bigfoot', display: 'Bigfoot', color: '#3D7A3D', radius: 0.0012 },
+  { id: 'fireballs', display: 'Fireballs', color: '#E82E2E', radius: 0.0008 },
+  { id: 'earthquakes', display: 'Earthquakes', color: '#D4920B', radius: 0.0008, rimmed: true },
+  { id: 'thermal-springs', display: 'Thermal Springs', color: '#2DA67A', radius: 0.0012 },
+  { id: 'haunted-places', display: 'Haunted Places', color: '#A855E8', radius: 0.0008 },
+  { id: 'meteorites', display: 'Meteorites', color: '#4A6FA5', radius: 0.0008 },
+  { id: 'ufo-sightings', display: 'UFO Sightings', color: '#0EAEBE', radius: 0.0006 },
+  { id: 'ghost-towns', display: 'Ghost Towns', color: '#C45C6A', radius: 0.0008 },
 ];
 CATEGORIES.forEach(c => c.count = (CATEGORY_DATA[c.id] || []).length);
 
@@ -66,7 +71,7 @@ const container = document.getElementById('globe-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf5f5f5);
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 0.2, 3.0);
+camera.position.set(0, 0.5, 3.367);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -74,6 +79,8 @@ container.appendChild(renderer.domElement);
 
 // === GLOBE GROUP ===
 const globeGroup = new THREE.Group();
+globeGroup.rotation.x = 0.463; // Tilt to center US vertically
+globeGroup.rotation.y = 0.192; // US centered horizontally
 scene.add(globeGroup);
 
 // Globe sphere — very light, clean
@@ -118,6 +125,9 @@ const atmosphereMesh = new THREE.Mesh(
       void main() {
         float rim = 1.0 - abs(dot(vNormal, vViewDir));
         float glow = pow(rim, uPower) * uIntensity;
+        // Feather the outer edge so it fades softly instead of a hard cutoff
+        float edge = smoothstep(1.0, 0.85, rim);
+        glow *= edge;
         gl_FragColor = vec4(uGlowColor, glow);
       }
     `
@@ -136,11 +146,30 @@ function createDotMaterial(color) {
   return new THREE.ShaderMaterial({
     transparent: true,
     depthTest: true,
-    uniforms: { uColor: { value: new THREE.Color(color) } },
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uPulse: { value: 1.0 },
+      uOrigin: { value: new THREE.Vector3(0, 0, 1) },
+      uRipplePhase: { value: -1.0 }
+    },
     vertexShader: `
+      uniform float uPulse;
+      uniform vec3 uOrigin;
+      uniform float uRipplePhase;
       varying float vFacing;
+      varying float vRipple;
       void main() {
-        vec4 pos = vec4(position, 1.0);
+        // Instance center = translation column of instance matrix
+        vec3 instCenter = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
+        vec3 normCenter = normalize(instCenter);
+        // Radial ripple from origin point
+        float angDist = acos(clamp(dot(normCenter, uOrigin), -1.0, 1.0));
+        float ripple = exp(-14.0 * (angDist - uRipplePhase) * (angDist - uRipplePhase));
+        ripple *= 1.0 - smoothstep(2.0, 3.14159, uRipplePhase);
+        vRipple = ripple * uPulse;
+        // Scale dot at wave front (grow up to 2.5x)
+        float scale = 1.0 + 1.5 * vRipple;
+        vec4 pos = vec4(position * scale, 1.0);
         #ifdef USE_INSTANCING
           pos = instanceMatrix * pos;
         #endif
@@ -154,10 +183,13 @@ function createDotMaterial(color) {
     fragmentShader: `
       uniform vec3 uColor;
       varying float vFacing;
+      varying float vRipple;
       void main() {
         if (vFacing < 0.1) discard;
         float alpha = smoothstep(0.1, 0.4, vFacing);
-        gl_FragColor = vec4(uColor, alpha);
+        // Flash toward white at wave front
+        vec3 col = mix(uColor, vec3(1.0), 0.3 * vRipple);
+        gl_FragColor = vec4(col, alpha);
       }
     `
   });
@@ -405,9 +437,111 @@ function buildCountryBorders() {
 // === CATEGORY POINTS ===
 const categoryMeshes = {};
 const activeCategories = new Set();
-function addCategory(id, data, color) {
-  const geo = new THREE.SphereGeometry(CAT_DOT_RADIUS, 5, 4);
-  const mat = createDotMaterial(color);
+function createCategoryMaterial(color, glowRadius) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthTest: true,
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uRadius: { value: glowRadius }
+    },
+    vertexShader: `
+      varying float vFacing;
+      varying vec3 vLocalPos;
+      void main() {
+        vLocalPos = position;
+        vec4 pos = vec4(position, 1.0);
+        #ifdef USE_INSTANCING
+          pos = instanceMatrix * pos;
+        #endif
+        vec4 worldPos = modelMatrix * pos;
+        vec3 norm = normalize(worldPos.xyz);
+        vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
+        vFacing = dot(norm, viewDir);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uRadius;
+      varying float vFacing;
+      varying vec3 vLocalPos;
+      void main() {
+        if (vFacing < 0.1) discard;
+        float silhouette = smoothstep(0.1, 0.4, vFacing);
+        // Normalize distance to 0-1 based on actual geometry radius
+        float dist = length(vLocalPos) / uRadius;
+
+        // === NEON ON LIGHT BACKGROUND ===
+        // Full opacity through 85% of sphere, fast fade at edge
+        float body = 1.0 - smoothstep(0.85, 1.0, dist);
+        float core = 1.0 - smoothstep(0.0, 0.15, dist);
+
+        vec3 neon = mix(uColor, vec3(1.0), core * 0.3);
+
+        float alpha = body * silhouette;
+        gl_FragColor = vec4(neon, alpha);
+      }
+    `
+  });
+}
+
+// Rimmed variant — sharp ring at the edge for definition (used by earthquakes)
+function createRimmedMaterial(color, glowRadius) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthTest: true,
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uRadius: { value: glowRadius }
+    },
+    vertexShader: `
+      varying float vFacing;
+      varying vec3 vLocalPos;
+      void main() {
+        vLocalPos = position;
+        vec4 pos = vec4(position, 1.0);
+        #ifdef USE_INSTANCING
+          pos = instanceMatrix * pos;
+        #endif
+        vec4 worldPos = modelMatrix * pos;
+        vec3 norm = normalize(worldPos.xyz);
+        vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
+        vFacing = dot(norm, viewDir);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uRadius;
+      varying float vFacing;
+      varying vec3 vLocalPos;
+      void main() {
+        if (vFacing < 0.1) discard;
+        float silhouette = smoothstep(0.1, 0.4, vFacing);
+        float dist = length(vLocalPos) / uRadius;
+
+        // === NEON ON LIGHT + SHARP RIM ===
+        float body = 1.0 - smoothstep(0.85, 1.0, dist);
+        float core = 1.0 - smoothstep(0.0, 0.15, dist);
+        float rim = smoothstep(0.7, 0.8, dist) * (1.0 - smoothstep(0.8, 0.92, dist));
+
+        vec3 neon = mix(uColor, vec3(1.0), core * 0.3);
+        neon = mix(neon, uColor * 1.2, rim * 0.9);
+
+        float alpha = clamp(body + rim * 0.6, 0.0, 1.0) * silhouette;
+        gl_FragColor = vec4(neon, alpha);
+      }
+    `
+  });
+}
+
+function addCategory(id, data, color, radius, rimmed) {
+  const r = radius || CAT_DOT_RADIUS;
+  // Glow sphere: 4x dot radius, minimum 0.004 for visibility
+  const glowR = Math.max(r * 4.0, 0.004);
+  const geo = new THREE.SphereGeometry(glowR, 6, 5);
+  const mat = rimmed ? createRimmedMaterial(color, glowR) : createCategoryMaterial(color, glowR);
   const mesh = new THREE.InstancedMesh(geo, mat, data.length);
   const d = new THREE.Object3D();
   for (let i=0; i<data.length; i++) {
@@ -418,7 +552,7 @@ function addCategory(id, data, color) {
   globeGroup.add(mesh);
   categoryMeshes[id] = mesh;
 }
-for (const cat of CATEGORIES) { const d = CATEGORY_DATA[cat.id]; if(d) addCategory(cat.id, d, cat.color); }
+for (const cat of CATEGORIES) { const d = CATEGORY_DATA[cat.id]; if(d) addCategory(cat.id, d, cat.color, cat.radius, cat.rimmed); }
 
 // === MOUSE ROTATE ===
 let isDragging=false, prevMouse={x:0,y:0}, velocity={x:0,y:0}, autoRotate=true;
@@ -435,16 +569,44 @@ renderer.domElement.addEventListener('mouseleave', () => isDragging=false);
 renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); camera.position.z = Math.max(2.2, Math.min(6, camera.position.z + e.deltaY*0.002)); }, {passive:false});
 
 // === ANIMATE ===
+let pulseTarget = 1.0; // 1 = idle pulse on, 0 = off (categories active)
+const RIPPLE_DURATION = 4500; // ms for ring to cross globe (~39°/s, matching landing wave)
+let rippleStartTime = Infinity; // held until landing wave finishes
+function randomSpherePoint() {
+  const theta = Math.random() * 2 * Math.PI;
+  const phi = Math.acos(2 * Math.random() - 1);
+  return new THREE.Vector3(Math.sin(phi)*Math.cos(theta), Math.cos(phi), Math.sin(phi)*Math.sin(theta));
+}
 function animate() {
   requestAnimationFrame(animate);
-  if (autoRotate) globeGroup.rotation.y += 0.0008;
+  if (autoRotate) globeGroup.rotation.y -= 0.0008;
   if (!isDragging) { velocity.x*=0.95; velocity.y*=0.95; globeGroup.rotation.y+=velocity.x; globeGroup.rotation.x+=velocity.y; globeGroup.rotation.x=Math.max(-1.2,Math.min(1.2,globeGroup.rotation.x)); }
+
+  // Drive continent dot ripple
+  if (continentDotMesh) {
+    const u = continentDotMesh.material.uniforms;
+    u.uPulse.value += (pulseTarget - u.uPulse.value) * 0.03;
+    const elapsed = performance.now() - rippleStartTime;
+    if (elapsed < RIPPLE_DURATION) {
+      u.uRipplePhase.value = (elapsed / RIPPLE_DURATION) * Math.PI;
+    } else {
+      rippleStartTime = performance.now();
+      u.uOrigin.value.copy(randomSpherePoint());
+      u.uRipplePhase.value = 0.0;
+    }
+  }
 
   renderer.render(scene, camera);
 }
 window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
 
 // === UI ===
+const controlsEl = document.getElementById('controls');
+const controlsToggleEl = document.getElementById('controls-toggle');
+controlsToggleEl.addEventListener('click', () => {
+  const collapsed = controlsEl.classList.toggle('collapsed');
+  controlsToggleEl.textContent = collapsed ? '›' : '‹';
+});
 const togglesEl = document.getElementById('category-toggles');
 const atlasTextEl = document.getElementById('atlas-text');
 function buildToggles() {
@@ -453,22 +615,150 @@ function buildToggles() {
     const dot = document.createElement('span'); dot.className='toggle-dot'; dot.style.backgroundColor=cat.color; dot.style.color=cat.color;
     const label = document.createElement('span'); label.textContent=cat.display;
     const count = document.createElement('span'); count.className='toggle-count'; count.textContent=cat.count.toLocaleString();
-    btn.appendChild(count); btn.appendChild(label); btn.appendChild(dot);
+    btn.appendChild(dot); btn.appendChild(label); btn.appendChild(count);
     btn.addEventListener('click', () => {
       if(activeCategories.has(cat.id)){activeCategories.delete(cat.id); if(categoryMeshes[cat.id])categoryMeshes[cat.id].visible=false;}
       else{activeCategories.add(cat.id); if(categoryMeshes[cat.id])categoryMeshes[cat.id].visible=true;}
       for(const b of togglesEl.querySelectorAll('.toggle-btn')) b.classList.toggle('active',activeCategories.has(b.dataset.id));
+      pulseTarget = activeCategories.size === 0 ? 1.0 : 0.0;
       updateAtlasText();
     });
     togglesEl.appendChild(btn);
   }
 }
+let atlasPromptDismissed = false;
 function updateAtlasText() {
-  const ids=[...activeCategories];
-  if(!ids.length){atlasTextEl.textContent='Select a category to begin.'; return;}
-  const names=ids.map(id=>CATEGORIES.find(c=>c.id===id)?.display||id);
-  const total=ids.reduce((s,id)=>s+(CATEGORY_DATA[id]?.length||0),0);
-  atlasTextEl.textContent=names.join(' + ')+'. '+total.toLocaleString()+' records.';
+  if(!atlasPromptDismissed && activeCategories.size > 0) {
+    atlasPromptDismissed = true;
+    atlasTextEl.style.transition = 'opacity 0.4s ease';
+    atlasTextEl.style.opacity = '0';
+    setTimeout(() => { atlasTextEl.textContent = ''; }, 400);
+  }
+}
+
+// === LANDING WAVE ANIMATION ===
+// West→east luminance sweep across mainland US on page load.
+// Temporary InstancedMesh with all US-bounded category points,
+// gaussian wave shader sweeping longitude from west coast to east coast.
+function launchWaveAnimation() {
+  const US_LAT_MIN = 25, US_LAT_MAX = 49, US_LNG_MIN = -125, US_LNG_MAX = -67;
+  const CORE_DURATION = 1500; // ms for the visible sweep
+  const SIGMA = 6.0; // gaussian width in degrees
+
+  // Collect US-bounded points from all categories with their colors
+  const pts = [];
+  for (const cat of CATEGORIES) {
+    const data = CATEGORY_DATA[cat.id];
+    if (!data) continue;
+    const c = new THREE.Color(cat.color);
+    for (const p of data) {
+      if (p.latitude >= US_LAT_MIN && p.latitude <= US_LAT_MAX &&
+          p.longitude >= US_LNG_MIN && p.longitude <= US_LNG_MAX) {
+        pts.push({ lat: p.latitude, lng: p.longitude, r: c.r, g: c.g, b: c.b });
+      }
+    }
+  }
+  if (pts.length === 0) return;
+
+  // Extend sweep past the data bounds so dots fade in/out naturally
+  const startLng = US_LNG_MIN - 2 * SIGMA;
+  const endLng = US_LNG_MAX + 3 * SIGMA;
+  const coreRange = US_LNG_MAX - US_LNG_MIN;
+  const totalRange = endLng - startLng;
+  const totalDuration = CORE_DURATION * totalRange / coreRange;
+
+  // Build instanced geometry with per-instance longitude + color
+  const GLOW_R = 0.004;
+  const geo = new THREE.SphereGeometry(GLOW_R, 6, 5);
+  const lngArr = new Float32Array(pts.length);
+  const colArr = new Float32Array(pts.length * 3);
+  const dummy = new THREE.Object3D();
+
+  const waveMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthTest: true,
+    uniforms: {
+      uWaveLng: { value: startLng },
+      uSigma: { value: SIGMA },
+      uGlowR: { value: GLOW_R }
+    },
+    vertexShader: `
+      attribute float instanceLng;
+      attribute vec3 instColor;
+      varying float vFacing;
+      varying float vLng;
+      varying vec3 vColor;
+      varying vec3 vLocalPos;
+      void main() {
+        vLocalPos = position;
+        vLng = instanceLng;
+        vColor = instColor;
+        vec4 pos = instanceMatrix * vec4(position, 1.0);
+        vec4 worldPos = modelMatrix * pos;
+        vec3 norm = normalize(worldPos.xyz);
+        vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
+        vFacing = dot(norm, viewDir);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform float uWaveLng;
+      uniform float uSigma;
+      uniform float uGlowR;
+      varying float vFacing;
+      varying float vLng;
+      varying vec3 vColor;
+      varying vec3 vLocalPos;
+      void main() {
+        if (vFacing < 0.1) discard;
+        float silhouette = smoothstep(0.1, 0.4, vFacing);
+        float d = vLng - uWaveLng;
+        float wave = exp(-0.5 * (d / uSigma) * (d / uSigma));
+        float r = length(vLocalPos) / uGlowR;
+        float body = 1.0 - smoothstep(0.85, 1.0, r);
+        float core = 1.0 - smoothstep(0.0, 0.15, r);
+        vec3 neon = mix(vColor, vec3(1.0), core * 0.3);
+        float alpha = body * silhouette * wave;
+        if (alpha < 0.01) discard;
+        gl_FragColor = vec4(neon, alpha);
+      }
+    `
+  });
+
+  const mesh = new THREE.InstancedMesh(geo, waveMat, pts.length);
+  for (let i = 0; i < pts.length; i++) {
+    dummy.position.copy(latLngToVec3(pts[i].lat, pts[i].lng, GLOBE_RADIUS + 0.004));
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+    lngArr[i] = pts[i].lng;
+    colArr[i * 3] = pts[i].r;
+    colArr[i * 3 + 1] = pts[i].g;
+    colArr[i * 3 + 2] = pts[i].b;
+  }
+  geo.setAttribute('instanceLng', new THREE.InstancedBufferAttribute(lngArr, 1));
+  geo.setAttribute('instColor', new THREE.InstancedBufferAttribute(colArr, 3));
+  globeGroup.add(mesh);
+  console.log('Wave animation: %d US points', pts.length);
+
+  const t0 = performance.now();
+  function tick() {
+    const t = Math.min((performance.now() - t0) / totalDuration, 1.0);
+    waveMat.uniforms.uWaveLng.value = startLng + t * totalRange;
+    if (t >= 1.0) {
+      globeGroup.remove(mesh);
+      geo.dispose();
+      waveMat.dispose();
+      // Seamlessly start first ripple from US east coast
+      rippleStartTime = performance.now();
+      if (continentDotMesh) {
+        const eastCoast = latLngToVec3(40, -67, 1.0);
+        continentDotMesh.material.uniforms.uOrigin.value.copy(eastCoast.normalize());
+      }
+      return;
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
 // === INIT ===
@@ -476,6 +766,7 @@ buildContinentDots();
 buildCountryBorders();
 buildToggles();
 animate();
+setTimeout(launchWaveAnimation, 1000);
 console.log('Globe initialized');
 </script>
 </body>

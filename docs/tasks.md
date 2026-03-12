@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-BUILD — Globe Design Iteration
+BUILD — Atlas Narrator Content (Phase 4)
 
 ## Planning Tasks
 
@@ -44,7 +44,7 @@ BUILD — Globe Design Iteration
 - [x] **UI overlay** — Wordmark top-left, category toggles right-center, atlas text bottom-left, tooltip (HTML positioned).
 - [x] **Playwright screenshots** — `scripts/screenshot.mjs` with repo-local Chromium. Limited by software WebGL rendering — use Chrome MCP for visual review instead.
 
-### Phase 3: Globe Design Iteration (Current)
+### Phase 3: Globe Design Iteration (Complete)
 
 - [x] **Dot density tuning** — Iterated from 2.0° → 0.8° → 0.4° spacing, radius from 0.006 → 0.003 → 0.0015.
 - [x] **Country borders added** — Subtle lines for geographic context, replacing graticule.
@@ -53,9 +53,11 @@ BUILD — Globe Design Iteration
 - [x] **Fix Arctic dot anomalies** — Eurasia polygon wrapping ±180° broke PIP parity. Fixed via `splitAtAntimeridian()`.
 - [x] **Bring Antarctica back** — Re-enabled Antarctica dots and borders via `fixPolarPoly()` for the 1-wrap-edge polar polygon. Dot grid extended to -89°.
 - [x] **Atmosphere glow** — Fresnel rim shader on BackSide sphere. Light ocean blue halo around globe edge.
-- [ ] **Category point styling** — Test toggling all 10 categories visually. Tune glow/size/color per category.
-- [ ] **Landing state polish** — Wordmark, opening Atlas text, idle state feel. The 60-second first impression.
-- [ ] **Add ambient idle animation** — Subtle continent dot pulse when nothing is selected.
+- [x] **Category point styling** — Color palette revised (10 distinct colors), size differentiation by density (4 tiers: 0.0015/0.0012/0.0008/0.0006), neon glow shader (opaque body + soft edge falloff + white-hot core), rimmed variant for earthquakes. Per-category radius/color/rimmed params in CATEGORIES array.
+- [x] **Landing state polish** — Globe loads facing US (rotation.x=0.463, rotation.y=0.192, camera z=3.367). Controls panel starts collapsed (chevron only). "Select a category to begin." prompt fades out on first category toggle and stays gone. Auto-rotation spins left (westward).
+- [x] **Controls panel collapse/expand** — Chevron button (`›`/`‹`) slides toggle list off-screen left with CSS transition. Button positioned after toggles in DOM so it stays visible when collapsed.
+- [x] **Landing wave animation** — West→east gaussian sweep across mainland US on page load. Temporary InstancedMesh with per-instance longitude and color attributes, neon glow shader. 1s delay, ~2.3s sweep, self-disposing.
+- [x] **Ambient idle animation** — Radial pond-ripple effect on continent dots when no categories active. Scale + brightness flash in vertex shader, random origin each cycle. Seamlessly begins from east coast when landing wave finishes.
 
 ### Phase 4: Atlas Narrator Content
 
