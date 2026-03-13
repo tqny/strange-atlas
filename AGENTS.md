@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**BUILD — Deployment (Phase 6)**
+**BUILD — Dashboard Page (Phase 6)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -19,9 +19,8 @@ Update this field as the project advances.
 
 Phase 5 (Overlap / Intersections) is complete. Next up:
 
-1. **Enable GitHub Pages** — Serve from main branch.
-2. **Final README pass** — Portfolio-quality.
-3. **Cross-browser check** — Chrome, Firefox, Safari.
+1. **Dashboard page** — Statistical analysis view: category breakdown, reports over time, by-state choropleth, top states. Separate page with shared nav.
+2. **About page** — In-product reviewer brief: data sources, design intent, build story, portfolio framing.
 
 ---
 
@@ -57,7 +56,7 @@ For any thread picking up this project:
 - **Antimeridian handling** — Polygons wrapping ±180° break PIP ray-casting. Handled by `splitAtAntimeridian()` (2-wrap-edge, e.g. Eurasia) and `fixPolarPoly()` (1-wrap-edge, e.g. Antarctica). See inline comments in `globe-template.html`.
 - **Data** — 10 categories, ~99K total points. Pre-split JSON in `data/`. Source: `strange_places_v5.2.json`.
 - **Atlas narrator** — pre-scripted in MVP. Designed as swap point for Phase 2 Claude API.
-- **Future pages** — Dashboard (statistical analysis) and About (in-product reviewer brief) are planned as future phases. Current globe will become one page of a multi-page site.
+- **Future pages** — Dashboard (Phase 6) and About (Phase 7) are next. Current globe will become one page of a multi-page site. Deployment (Phase 8) follows after both pages are built.
 
 ---
 

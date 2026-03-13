@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-BUILD — Overlap / Intersections (Phase 5)
+BUILD — Dashboard Page (Phase 6)
 
 ## Planning Tasks
 
@@ -71,22 +71,22 @@ BUILD — Overlap / Intersections (Phase 5)
 - [x] **Intersection rendering on globe** — Per-instance `instanceOverlap` attribute + `uOverlapFade` uniform drives shader-based visibility. Post-fade matrix zeroing for raycasting.
 - [x] **Intersection UX refinement** — Smooth ~300ms lerp fade (factor 0.08), 15% brightness boost on overlap-surviving points. Handles rapid toggling, category changes mid-fade, and force-disable.
 
-### Phase 6: Deployment
+### Phase 6: Dashboard Page
+
+- [ ] **Dashboard design** — Statistical analysis view: category breakdown, reports over time, by-state choropleth, top states. Reference: Strange Places dashboard.
+- [ ] **Dashboard implementation** — Separate page with shared nav. Chart library TBD.
+
+### Phase 7: About Page
+
+- [ ] **About page** — `about.html`. In-product reviewer brief: data sources, design intent, build story, portfolio framing. Same design tokens as main page.
+
+### Phase 8: Deployment
 
 - [x] **Create repo** — `github.com/tqny/strange-atlas`, published.
 - [x] **Initial commit** — Source JSON + dataset folder excluded via `.gitignore`. Data files excluded for now (preview is self-contained).
 - [ ] **Enable GitHub Pages** — Serve from main branch.
 - [ ] **Final README pass** — Portfolio-quality.
 - [ ] **Cross-browser check** — Chrome, Firefox, Safari.
-
-### Phase 7: Dashboard Page (Post-MVP)
-
-- [ ] **Dashboard design** — Statistical analysis view: category breakdown, reports over time, by-state choropleth, top states. Reference: Strange Places dashboard.
-- [ ] **Dashboard implementation** — Separate page with shared nav. Chart library TBD.
-
-### Phase 8: About Page (Post-MVP)
-
-- [ ] **About page** — `about.html`. In-product reviewer brief: data sources, design intent, build story, portfolio framing. Same design tokens as main page.
 
 ### Phase 9: Modular Refactor (Post-MVP)
 
