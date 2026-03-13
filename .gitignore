@@ -3,7 +3,7 @@ strange_places_v5.2.json
 strange-places-dataset-main/
 
 # Split data files (will add back when modular version is ready)
-data/
+/data/
 
 # OS
 .DS_Store
@@ -29,6 +29,12 @@ node_modules/
 # Built output (21MB, regenerated via scripts/build-globe.py)
 globe-preview.html
 
+# Dashboard build output
+dashboard/dist/
+dashboard/node_modules/
+
 # Claude Code
 .claude/
+.agents/
+skills-lock.json
 HANDOFF.md
