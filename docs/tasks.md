@@ -67,9 +67,9 @@ BUILD — Overlap / Intersections (Phase 5)
 
 ### Phase 5: Overlap / Intersections (Port from preview.html)
 
-- [ ] **Port overlap detection to globe** — Haversine distance + spatial grid from preview.html. 150km radius.
-- [ ] **Intersection rendering on globe** — Filter to overlap points, visual distinction.
-- [ ] **Intersection UX refinement** — Animate transition, improve visual distinction.
+- [x] **Port overlap detection to globe** — Haversine + spatial grid (2° cells), 150km radius. Toggle switch UI above category list. `computeOverlaps()` returns `{ catId → Set<pointIndex> }`.
+- [x] **Intersection rendering on globe** — Per-instance `instanceOverlap` attribute + `uOverlapFade` uniform drives shader-based visibility. Post-fade matrix zeroing for raycasting.
+- [x] **Intersection UX refinement** — Smooth ~300ms lerp fade (factor 0.08), 15% brightness boost on overlap-surviving points. Handles rapid toggling, category changes mid-fade, and force-disable.
 
 ### Phase 6: Deployment
 

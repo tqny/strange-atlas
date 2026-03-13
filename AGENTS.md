@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**BUILD — Overlap / Intersections (Phase 5)**
+**BUILD — Deployment (Phase 6)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -17,11 +17,11 @@ Update this field as the project advances.
 
 ## What To Do Right Now
 
-Phase 4 (Atlas Narrator Content) is complete. Next up:
+Phase 5 (Overlap / Intersections) is complete. Next up:
 
-1. **Port overlap detection to globe** — Haversine distance + spatial grid from preview.html. 150km radius.
-2. **Intersection rendering on globe** — Filter to overlap points, visual distinction.
-3. **Intersection UX refinement** — Animate transition, improve visual distinction.
+1. **Enable GitHub Pages** — Serve from main branch.
+2. **Final README pass** — Portfolio-quality.
+3. **Cross-browser check** — Chrome, Firefox, Safari.
 
 ---
 
