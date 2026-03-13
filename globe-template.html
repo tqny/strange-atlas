@@ -16,7 +16,8 @@ canvas { display: block; }
 #wordmark .subtitle { font-weight: 300; font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.03em; }
 #controls { position: fixed; top: 50%; left: 0; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: row; align-items: flex-start; transition: transform 0.3s ease; padding-left: 36px; }
 #controls.collapsed { transform: translateY(-50%) translateX(calc(-100% + 36px)); }
-#controls.collapsed #category-toggles { opacity: 0; pointer-events: none; }
+#controls-inner { display: flex; flex-direction: column; }
+#controls.collapsed #controls-inner { opacity: 0; pointer-events: none; }
 #category-toggles { display: flex; flex-direction: column; gap: 2px; transition: opacity 0.2s ease; }
 #controls-toggle { background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 400; color: var(--text-mid); padding: 8px 10px; transition: color 0.2s ease; align-self: center; flex-shrink: 0; }
 #controls-toggle:hover { color: var(--text); }
@@ -26,6 +27,17 @@ canvas { display: block; }
 .toggle-dot { width: 8px; height: 8px; border-radius: 50%; opacity: 0.3; transition: opacity 0.2s ease, box-shadow 0.2s ease; flex-shrink: 0; }
 .toggle-btn.active .toggle-dot { opacity: 1; box-shadow: 0 0 6px currentColor; }
 .toggle-count { font-size: 0.62rem; color: var(--text-dim); font-weight: 300; min-width: 36px; text-align: left; }
+#overlap-control { margin-bottom: 8px; padding-bottom: 8px; transition: opacity 0.2s ease; }
+#overlap-switch { display: flex; align-items: center; gap: 6px; padding: 6px 14px 6px 2px; cursor: pointer; user-select: none; -webkit-user-select: none; }
+#overlap-switch.disabled { opacity: 0.45; pointer-events: none; }
+.switch-track { position: relative; width: 28px; height: 16px; border-radius: 8px; background: rgba(0,0,0,0.1); transition: background 0.2s ease; flex-shrink: 0; }
+#overlap-switch.active .switch-track { background: var(--text); }
+#overlap-switch:not(.disabled):hover .switch-track { background: rgba(0,0,0,0.16); }
+#overlap-switch.active:hover .switch-track { background: var(--text-mid); }
+.switch-thumb { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+#overlap-switch.active .switch-thumb { transform: translateX(12px); }
+.switch-label { font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 400; color: var(--text-dim); letter-spacing: 0.02em; transition: color 0.2s ease, font-weight 0.2s ease; white-space: nowrap; }
+#overlap-switch.active .switch-label { color: var(--text); font-weight: 500; }
 #atlas-panel { position: fixed; bottom: 32px; left: 36px; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; pointer-events: none; }
 #atlas-toggle { background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 400; color: var(--text-mid); padding: 0 0 4px 0; transition: color 0.2s ease, opacity 0.3s ease; pointer-events: auto; opacity: 0; }
 #atlas-toggle:hover { color: var(--text); }
@@ -42,7 +54,7 @@ canvas { display: block; }
 <body>
 <div id="globe-container"></div>
 <header id="wordmark"><h1>Strange Atlas</h1><div class="subtitle">98,775 phenomena across 10 categories</div></header>
-<aside id="controls" class="collapsed"><div id="category-toggles"></div><button id="controls-toggle" aria-label="Toggle categories">›</button></aside>
+<aside id="controls" class="collapsed"><div id="controls-inner"><div id="overlap-control"><div id="overlap-switch" class="disabled"><span class="switch-track"><span class="switch-thumb"></span></span><span class="switch-label">Intersections</span></div></div><div id="category-toggles"></div></div><button id="controls-toggle" aria-label="Toggle categories">›</button></aside>
 <footer id="atlas-panel" class="collapsed"><button id="atlas-toggle" aria-label="Toggle observation">&#x203A;</button><p id="atlas-text">Select a category to begin.</p></footer>
 <div id="tooltip" class="hidden"><div id="tooltip-name"></div><div id="tooltip-meta"></div><div id="tooltip-desc"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -69,6 +81,93 @@ const CATEGORIES = [
   { id: 'ghost-towns', display: 'Ghost Towns', color: '#C45C6A', radius: 0.0008 },
 ];
 CATEGORIES.forEach(c => c.count = (CATEGORY_DATA[c.id] || []).length);
+
+// === OVERLAP DETECTION ===
+// Ported from preview.html — Haversine distance + spatial grid for fast neighbor lookups
+const OVERLAP_RADIUS_KM = 150; // points within 150km are considered overlapping
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Build a simple spatial grid for fast neighbor lookups
+function buildGrid(points, cellSize) {
+  const grid = {};
+  for (const pt of points) {
+    const cx = Math.floor(pt.longitude / cellSize);
+    const cy = Math.floor(pt.latitude / cellSize);
+    const key = cx + ',' + cy;
+    if (!grid[key]) grid[key] = [];
+    grid[key].push(pt);
+  }
+  return grid;
+}
+
+function findNearbyInGrid(grid, lat, lng, cellSize, radiusKm) {
+  const cx = Math.floor(lng / cellSize);
+  const cy = Math.floor(lat / cellSize);
+  const results = [];
+  // Check 3x3 neighborhood
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      const key = (cx+dx) + ',' + (cy+dy);
+      const cell = grid[key];
+      if (!cell) continue;
+      for (const pt of cell) {
+        if (haversineKm(lat, lng, pt.latitude, pt.longitude) <= radiusKm) {
+          results.push(pt);
+        }
+      }
+    }
+  }
+  return results;
+}
+
+// Compute overlap: for each active category, find points near points of OTHER categories
+function computeOverlaps(activeCatIds) {
+  if (activeCatIds.length < 2) return {};
+
+  const cellSize = 2; // degrees per grid cell (~200km at equator)
+  const result = {}; // catId → Set of point indices that overlap
+
+  // Build grids for each category
+  const grids = {};
+  for (const id of activeCatIds) {
+    grids[id] = buildGrid(CATEGORY_DATA[id] || [], cellSize);
+    result[id] = new Set();
+  }
+
+  // For each category pair, find overlapping points
+  for (let i = 0; i < activeCatIds.length; i++) {
+    for (let j = i + 1; j < activeCatIds.length; j++) {
+      const idA = activeCatIds[i], idB = activeCatIds[j];
+      const ptsA = CATEGORY_DATA[idA] || [];
+      const gridB = grids[idB];
+
+      for (let ai = 0; ai < ptsA.length; ai++) {
+        const ptA = ptsA[ai];
+        const nearby = findNearbyInGrid(gridB, ptA.latitude, ptA.longitude, cellSize, OVERLAP_RADIUS_KM);
+        if (nearby.length > 0) {
+          result[idA].add(ai);
+          // Also mark the matched points in category B
+          const ptsB = CATEGORY_DATA[idB] || [];
+          for (const nb of nearby) {
+            const bi = ptsB.indexOf(nb);
+            if (bi >= 0) result[idB].add(bi);
+          }
+        }
+      }
+    }
+  }
+
+  return result;
+}
 
 // === THREE.JS SETUP ===
 const container = document.getElementById('globe-container');
@@ -441,19 +540,28 @@ function buildCountryBorders() {
 // === CATEGORY POINTS ===
 const categoryMeshes = {};
 const activeCategories = new Set();
+let overlapMode = false;
+const ZERO_MATRIX = new THREE.Matrix4().makeScale(0, 0, 0);
+let overlapFadeTarget = 0;    // 0 = normal, 1 = overlap mode fully active
+let overlapFadeProgress = 0;  // current lerp value, driven in animate()
+let overlapFadeComplete = true;
 function createCategoryMaterial(color, glowRadius) {
   return new THREE.ShaderMaterial({
     transparent: true,
     depthTest: true,
     uniforms: {
       uColor: { value: new THREE.Color(color) },
-      uRadius: { value: glowRadius }
+      uRadius: { value: glowRadius },
+      uOverlapFade: { value: 0.0 }
     },
     vertexShader: `
+      attribute float instanceOverlap;
       varying float vFacing;
       varying vec3 vLocalPos;
+      varying float vOverlap;
       void main() {
         vLocalPos = position;
+        vOverlap = instanceOverlap;
         vec4 pos = vec4(position, 1.0);
         #ifdef USE_INSTANCING
           pos = instanceMatrix * pos;
@@ -468,8 +576,10 @@ function createCategoryMaterial(color, glowRadius) {
     fragmentShader: `
       uniform vec3 uColor;
       uniform float uRadius;
+      uniform float uOverlapFade;
       varying float vFacing;
       varying vec3 vLocalPos;
+      varying float vOverlap;
       void main() {
         if (vFacing < 0.1) discard;
         float silhouette = smoothstep(0.1, 0.4, vFacing);
@@ -484,6 +594,10 @@ function createCategoryMaterial(color, glowRadius) {
         vec3 neon = mix(uColor, vec3(1.0), core * 0.3);
 
         float alpha = body * silhouette;
+        // Overlap fade: non-overlap instances fade to invisible
+        alpha *= mix(1.0, vOverlap, uOverlapFade);
+        // Brightness boost for overlap-surviving points
+        neon = mix(neon, neon * 1.15 + vec3(0.05), uOverlapFade * vOverlap);
         gl_FragColor = vec4(neon, alpha);
       }
     `
@@ -497,13 +611,17 @@ function createRimmedMaterial(color, glowRadius) {
     depthTest: true,
     uniforms: {
       uColor: { value: new THREE.Color(color) },
-      uRadius: { value: glowRadius }
+      uRadius: { value: glowRadius },
+      uOverlapFade: { value: 0.0 }
     },
     vertexShader: `
+      attribute float instanceOverlap;
       varying float vFacing;
       varying vec3 vLocalPos;
+      varying float vOverlap;
       void main() {
         vLocalPos = position;
+        vOverlap = instanceOverlap;
         vec4 pos = vec4(position, 1.0);
         #ifdef USE_INSTANCING
           pos = instanceMatrix * pos;
@@ -518,8 +636,10 @@ function createRimmedMaterial(color, glowRadius) {
     fragmentShader: `
       uniform vec3 uColor;
       uniform float uRadius;
+      uniform float uOverlapFade;
       varying float vFacing;
       varying vec3 vLocalPos;
+      varying float vOverlap;
       void main() {
         if (vFacing < 0.1) discard;
         float silhouette = smoothstep(0.1, 0.4, vFacing);
@@ -534,6 +654,10 @@ function createRimmedMaterial(color, glowRadius) {
         neon = mix(neon, uColor * 1.2, rim * 0.9);
 
         float alpha = clamp(body + rim * 0.6, 0.0, 1.0) * silhouette;
+        // Overlap fade: non-overlap instances fade to invisible
+        alpha *= mix(1.0, vOverlap, uOverlapFade);
+        // Brightness boost for overlap-surviving points
+        neon = mix(neon, neon * 1.15 + vec3(0.05), uOverlapFade * vOverlap);
         gl_FragColor = vec4(neon, alpha);
       }
     `
@@ -552,6 +676,9 @@ function addCategory(id, data, color, radius, rimmed) {
     d.position.copy(latLngToVec3(data[i].latitude, data[i].longitude, GLOBE_RADIUS + 0.004));
     d.updateMatrix(); mesh.setMatrixAt(i, d.matrix);
   }
+  const overlapArr = new Float32Array(data.length);
+  overlapArr.fill(1.0);
+  geo.setAttribute('instanceOverlap', new THREE.InstancedBufferAttribute(overlapArr, 1));
   mesh.visible = false;
   globeGroup.add(mesh);
   categoryMeshes[id] = mesh;
@@ -600,6 +727,36 @@ function animate() {
     }
   }
 
+  // Drive overlap fade
+  if (!overlapFadeComplete) {
+    overlapFadeProgress += (overlapFadeTarget - overlapFadeProgress) * 0.08;
+    if (Math.abs(overlapFadeProgress - overlapFadeTarget) < 0.005) {
+      overlapFadeProgress = overlapFadeTarget;
+      overlapFadeComplete = true;
+      // After fade-in to overlap completes, zero matrices for raycasting accuracy
+      if (overlapFadeTarget === 1) {
+        for (const id of Array.from(activeCategories)) {
+          const mesh = categoryMeshes[id];
+          if (!mesh) continue;
+          const attr = mesh.geometry.getAttribute('instanceOverlap');
+          if (!attr) continue;
+          const data = CATEGORY_DATA[id] || [];
+          for (let i = 0; i < data.length; i++) {
+            if (attr.array[i] < 0.5) mesh.setMatrixAt(i, ZERO_MATRIX);
+          }
+          mesh.instanceMatrix.needsUpdate = true;
+        }
+      }
+    }
+    // Update uniform on all active category meshes
+    for (const id of Array.from(activeCategories)) {
+      const mesh = categoryMeshes[id];
+      if (mesh && mesh.material.uniforms.uOverlapFade) {
+        mesh.material.uniforms.uOverlapFade.value = overlapFadeProgress;
+      }
+    }
+  }
+
   renderer.render(scene, camera);
 }
 window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
@@ -640,11 +797,99 @@ function buildToggles() {
       else{activeCategories.add(cat.id); if(categoryMeshes[cat.id])categoryMeshes[cat.id].visible=true;}
       for(const b of togglesEl.querySelectorAll('.toggle-btn')) b.classList.toggle('active',activeCategories.has(b.dataset.id));
       pulseTarget = activeCategories.size === 0 ? 1.0 : 0.0;
+      updateOverlapBtn();
       updateAtlasText();
     });
     togglesEl.appendChild(btn);
   }
 }
+
+// === OVERLAP MODE ===
+const overlapSwitch = document.getElementById('overlap-switch');
+
+function updateOverlapBtn() {
+  const count = activeCategories.size;
+  if (count < 2) {
+    overlapSwitch.classList.add('disabled');
+    overlapSwitch.classList.remove('active');
+    if (overlapMode) {
+      overlapMode = false;
+      applyOverlapMode(); // restore matrices
+    }
+  } else {
+    overlapSwitch.classList.remove('disabled');
+    if (overlapMode) applyOverlapMode(); // recompute with changed categories
+  }
+}
+
+overlapSwitch.addEventListener('click', () => {
+  if (activeCategories.size < 2) return;
+  overlapMode = !overlapMode;
+  overlapSwitch.classList.toggle('active', overlapMode);
+  applyOverlapMode();
+  updateAtlasText();
+});
+
+// Restore original instance matrices for a category from CATEGORY_DATA.
+function restoreCategoryMatrices(id) {
+  const mesh = categoryMeshes[id];
+  const data = CATEGORY_DATA[id];
+  if (!mesh || !data) return;
+  const d = new THREE.Object3D();
+  for (let i = 0; i < data.length; i++) {
+    d.position.copy(latLngToVec3(data[i].latitude, data[i].longitude, GLOBE_RADIUS + 0.004));
+    d.updateMatrix();
+    mesh.setMatrixAt(i, d.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+// Compute overlaps and drive per-instance fade via shader attribute.
+// ON: compute overlaps, write instanceOverlap attribute, set fade target.
+// OFF: restore matrices + attributes, set fade target to 0.
+function applyOverlapMode() {
+  const active = Array.from(activeCategories);
+  if (!overlapMode || active.length < 2) {
+    // Fade back to normal: restore matrices and reset overlap attribute
+    overlapFadeTarget = 0;
+    overlapFadeComplete = false;
+    for (const id of active) {
+      const mesh = categoryMeshes[id];
+      if (!mesh) continue;
+      restoreCategoryMatrices(id);
+      const attr = mesh.geometry.getAttribute('instanceOverlap');
+      if (attr) { attr.array.fill(1.0); attr.needsUpdate = true; }
+      mesh.visible = true;
+    }
+    return;
+  }
+
+  const t0 = performance.now();
+  // Restore matrices (previous overlap may have zeroed some for raycasting)
+  for (const id of active) restoreCategoryMatrices(id);
+  const overlaps = computeOverlaps(active);
+  const elapsed = (performance.now() - t0).toFixed(1);
+
+  let totalOverlap = 0;
+  for (const id of active) {
+    const overlapSet = overlaps[id] || new Set();
+    const data = CATEGORY_DATA[id] || [];
+    const mesh = categoryMeshes[id];
+    if (!mesh) continue;
+    const attr = mesh.geometry.getAttribute('instanceOverlap');
+    if (!attr) continue;
+    for (let i = 0; i < data.length; i++) {
+      attr.array[i] = overlapSet.has(i) ? 1.0 : 0.0;
+    }
+    attr.needsUpdate = true;
+    totalOverlap += overlapSet.size;
+    console.log(`  ${id}: ${overlapSet.size}/${data.length} overlap`);
+  }
+  overlapFadeTarget = 1;
+  overlapFadeComplete = false;
+  console.log(`Overlap mode ON: ${totalOverlap} total overlapping points across ${active.length} categories (${elapsed}ms)`);
+}
+
 // === ATLAS NARRATOR ===
 const ATLAS_OBSERVATIONS = {
   'ufo-sightings': '98% United States. Whatever is up there has a strong preference for North American airspace - or North Americans have a strong preference for looking up.',
