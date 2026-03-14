@@ -31,10 +31,19 @@ for cid, fname in files.items():
 cat_data_str = 'const CATEGORY_DATA = {\n' + ',\n'.join(cat_chunks) + '\n};'
 inline_data = f'const WORLD_TOPO = {topo};\nconst COUNTRIES_TOPO = {countries_topo};\n{cat_data_str}'
 
+# Read chat API proxy URL from environment
+chat_api_url = os.environ.get('CHAT_API_URL', '')
+chat_api_js = f"const CHAT_API_URL = {json.dumps(chat_api_url)};"
+
 # Read template
 template = open(os.path.join(ROOT, 'globe-template.html')).read()
 output = template.replace('%%INLINE_DATA%%', inline_data)
+output = output.replace('%%CHAT_API_URL%%', chat_api_js)
 
 outpath = os.path.join(ROOT, 'globe-preview.html')
 open(outpath, 'w').write(output)
 print(f'Built {outpath}: {os.path.getsize(outpath)/1024/1024:.1f}MB')
+if chat_api_url:
+    print(f'Chat API URL: {chat_api_url}')
+else:
+    print('Chat API URL: not set (chat will show error). Set CHAT_API_URL env var to enable.')

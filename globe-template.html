@@ -9,17 +9,21 @@
 :root { --bg: #f5f5f5; --text: #1a1a1a; --text-dim: #999; --text-mid: #666; --panel-bg: rgba(255,255,255,0.85); }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
-#globe-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+#globe-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+#globe-container.chat-active { transform: translateY(-25%); }
 canvas { display: block; }
 #site-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 10; pointer-events: none; display: flex; align-items: center; justify-content: space-between; padding: 28px 36px 0; }
-#site-nav h1 { font-weight: 600; font-size: 1.4rem; letter-spacing: -0.01em; color: var(--text); }
+#site-nav h1 { font-weight: 600; font-size: 1.6rem; letter-spacing: -0.01em; color: var(--text); cursor: pointer; pointer-events: auto; }
 #site-nav .subtitle { font-weight: 300; font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.03em; }
 #site-nav .nav-links { display: flex; gap: 16px; pointer-events: auto; }
 #site-nav .nav-links a { font-size: 0.75rem; color: var(--text-dim); text-decoration: none; transition: color 0.2s ease; }
 #site-nav .nav-links a:hover { color: var(--text); }
 #site-nav .nav-links a.active { color: var(--text); font-weight: 500; }
-#controls { position: fixed; top: 50%; left: 0; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: row; align-items: flex-start; transition: transform 0.3s ease; padding-left: 36px; }
+#controls { position: fixed; top: 50%; left: 0; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: row; align-items: flex-start; transition: transform 0.3s ease, top 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); padding-left: 36px; }
 #controls.collapsed { transform: translateY(-50%) translateX(calc(-100% + 36px)); }
+#controls.chat-active { top: 50%; transform: translateY(-50%); }
+#controls.chat-active.collapsed { transform: translateY(-50%) translateX(calc(-100% + 36px)); }
+#controls.chat-active #controls-inner { }
 #controls-inner { display: flex; flex-direction: column; }
 #controls.collapsed #controls-inner { opacity: 0; pointer-events: none; }
 #category-toggles { display: flex; flex-direction: column; gap: 2px; transition: opacity 0.2s ease; }
@@ -53,14 +57,47 @@ canvas { display: block; }
 #tooltip-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
 #tooltip-meta { font-size: 0.66rem; color: var(--text-dim); margin-bottom: 5px; }
 #tooltip-desc { font-size: 0.7rem; color: var(--text-mid); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#chat-container { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; z-index: 9; transform: translateY(100%); transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: none; }
+#chat-container.active { transform: translateY(0); }
+#chat-inner { display: flex; flex-direction: column; width: 320px; max-width: 90vw; max-height: calc(50vh - 20px); padding: 24px 0 20px; overflow: hidden; transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); justify-content: flex-end; pointer-events: auto; }
+#chat-inner.expanded { width: 520px; }
+#chat-messages { flex: 0 1 auto; max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 8px 4px 16px; scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.1) transparent; }
+#chat-messages::-webkit-scrollbar { width: 3px; }
+#chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+.chat-msg { max-width: 82%; padding: 10px 16px; font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 400; line-height: 1.6; letter-spacing: 0.01em; }
+.chat-msg.user { align-self: flex-end; background: rgba(0,0,0,0.05); color: var(--text); border-radius: 18px 18px 6px 18px; }
+.chat-msg.ai { align-self: flex-start; background: transparent; color: var(--text-mid); border-radius: 0; padding: 4px 2px; font-weight: 300; line-height: 1.65; border-left: 1.5px solid rgba(0,0,0,0.08); padding-left: 14px; margin-left: 2px; }
+.chat-msg.ai.typing::after { content: ''; display: inline-block; width: 3px; height: 12px; background: var(--text-dim); margin-left: 3px; animation: blink 0.8s infinite; vertical-align: text-bottom; border-radius: 1px; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.chat-msg.error { color: var(--text-dim); font-style: italic; font-weight: 300; }
+.chat-msg.plug { font-size: 0.7rem; color: var(--text-dim); font-style: italic; border-left-color: rgba(0,0,0,0.04); opacity: 0.7; }
+#chat-controls { display: none; align-items: center; justify-content: space-between; padding: 4px 2px; }
+#chat-controls.visible { display: flex; }
+#chat-controls button { font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 400; color: var(--text-dim); background: transparent; border: none; cursor: pointer; padding: 2px 6px; transition: color 0.2s ease; letter-spacing: 0.03em; }
+#chat-controls button:hover { color: var(--text); }
+#chat-messages.minimized { max-height: 0; padding: 0 4px; overflow: hidden; opacity: 0; transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease; }
+#chat-messages:not(.minimized) { transition: max-height 0.3s ease, opacity 0.2s ease 0.1s; }
+#chat-input-wrap { display: flex; align-items: center; background: rgba(0,0,0,0.05); border-radius: 24px; padding: 4px 4px 4px 16px; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+#chat-input { flex: 1; padding: 8px 0; font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 400; color: var(--text); background: transparent; border: none; outline: none; resize: none; min-height: 20px; max-height: 80px; line-height: 1.4; overflow-y: hidden; }
+#chat-input::placeholder { color: var(--text-dim); }
+#chat-send { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--text); border: none; border-radius: 50%; cursor: pointer; transition: opacity 0.2s ease; flex-shrink: 0; }
+#chat-send:hover { opacity: 0.8; }
+#chat-send:disabled { opacity: 0.25; cursor: default; }
+#chat-send:disabled:hover { opacity: 0.25; }
+#chat-send svg { width: 14px; height: 14px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#chat-examples { display: flex; gap: 6px; padding-top: 8px; justify-content: center; transition: opacity 0.3s ease; }
+#chat-examples.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+.chat-example { padding: 4px 10px; font-family: 'Inter', sans-serif; font-size: 0.64rem; font-weight: 400; color: var(--text-dim); background: transparent; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: color 0.2s ease, border-color 0.2s ease; white-space: nowrap; }
+.chat-example:hover { color: var(--text); border-color: rgba(0,0,0,0.2); }
 </style>
 </head>
 <body>
 <div id="globe-container"></div>
-<nav id="site-nav"><div><h1>Strange Atlas</h1><div class="subtitle">98,775 phenomena across 10 categories</div></div><div class="nav-links"><a href="globe-preview.html" class="active">Globe</a><a href="dashboard/">Dashboard</a><a href="about.html">About</a></div></nav>
+<nav id="site-nav"><div><h1>Strange Atlas</h1><div class="subtitle">~99,000 strange places · 10 categories</div></div><div class="nav-links"><a href="#" id="nav-atlas" class="active">Atlas</a><a href="#" id="nav-chat">Ask Atlas</a><a href="about.html">About</a></div></nav>
 <aside id="controls" class="collapsed"><div id="controls-inner"><div id="overlap-control"><div id="overlap-switch" class="disabled"><span class="switch-track"><span class="switch-thumb"></span></span><span class="switch-label">Intersections</span></div></div><div id="category-toggles"></div></div><button id="controls-toggle" aria-label="Toggle categories">›</button></aside>
 <footer id="atlas-panel" class="collapsed"><button id="atlas-toggle" aria-label="Toggle observation">&#x203A;</button><p id="atlas-text">Select a category to begin.</p></footer>
 <div id="tooltip" class="hidden"><div id="tooltip-name"></div><div id="tooltip-meta"></div><div id="tooltip-desc"></div></div>
+<div id="chat-container"><div id="chat-inner"><div id="chat-messages"></div><div id="chat-controls"><button id="chat-minimize" aria-label="Minimize chat">Hide</button><button id="chat-clear" aria-label="Clear conversation">New chat</button></div><div id="chat-input-wrap"><input id="chat-input" type="text" placeholder="Ask about the data..." autocomplete="off"><button id="chat-send" aria-label="Send message"><svg viewBox="0 0 24 24"><path d="M12 19V5M12 5l-5 5M12 5l5 5"/></svg></button></div><div id="chat-examples"></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // === INLINE DATA (injected by build) ===
@@ -700,8 +737,16 @@ renderer.domElement.addEventListener('mousemove', e => {
   prevMouse = {x:e.clientX, y:e.clientY};
 });
 renderer.domElement.addEventListener('mouseup', () => isDragging=false);
+renderer.domElement.addEventListener('dblclick', () => { autoRotate=true; velocity={x:0,y:0}; });
 renderer.domElement.addEventListener('mouseleave', () => isDragging=false);
-renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); camera.position.z = Math.max(2.2, Math.min(6, camera.position.z + e.deltaY*0.002)); }, {passive:false});
+renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); if (chatMode) return; cameraZTarget = Math.max(2.2, Math.min(6, cameraZTarget + e.deltaY*0.002)); }, {passive:false});
+
+// === CHAT MODE STATE ===
+let chatMode = false;
+let cameraZTarget = 3.367; // default globe zoom
+const CHAT_ZOOM = 4.5;     // zoomed-out z for chat mode
+const DEFAULT_ZOOM = 3.367;
+const CAM_LERP = 0.05;     // lerp factor for camera animation
 
 // === ANIMATE ===
 let pulseTarget = 1.0; // 1 = idle pulse on, 0 = off (categories active)
@@ -760,6 +805,9 @@ function animate() {
       }
     }
   }
+
+  // Drive camera lerp for chat mode transition
+  camera.position.z += (cameraZTarget - camera.position.z) * CAM_LERP;
 
   renderer.render(scene, camera);
 }
@@ -1104,6 +1152,285 @@ function launchWaveAnimation() {
   }
   requestAnimationFrame(tick);
 }
+
+// === TITLE SCRAMBLE ===
+const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+function textScramble(el, duration = 0.8, speed = 0.04) {
+  const text = el.dataset.text || (el.dataset.text = el.textContent);
+  const steps = duration / speed;
+  let step = 0;
+  const interval = setInterval(() => {
+    const progress = step / steps;
+    let scrambled = '';
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === ' ') { scrambled += ' '; continue; }
+      scrambled += progress * text.length > i ? text[i] : SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+    }
+    el.textContent = scrambled;
+    step++;
+    if (step > steps) { clearInterval(interval); el.textContent = text; }
+  }, speed * 1000);
+}
+
+const titleEl = document.querySelector('#site-nav h1');
+titleEl.addEventListener('click', () => textScramble(titleEl));
+setTimeout(() => textScramble(titleEl), 1000);
+
+// === CHAT MODE ===
+const chatContainer = document.getElementById('chat-container');
+const chatInner = document.getElementById('chat-inner');
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send');
+const chatExamples = document.getElementById('chat-examples');
+const chatControls = document.getElementById('chat-controls');
+const chatMinimizeBtn = document.getElementById('chat-minimize');
+const chatClearBtn = document.getElementById('chat-clear');
+const navAtlas = document.getElementById('nav-atlas');
+const navChat = document.getElementById('nav-chat');
+
+const EXAMPLE_QUESTIONS = [
+  'Most haunted state?',
+  'UFO hotspots?'
+];
+
+// Build example chips
+EXAMPLE_QUESTIONS.forEach(q => {
+  const chip = document.createElement('button');
+  chip.className = 'chat-example';
+  chip.textContent = q;
+  chip.addEventListener('click', () => { chatInner.classList.add('expanded'); chatInput.value = q; sendChatMessage(); });
+  chatExamples.appendChild(chip);
+});
+
+// Minimize / Clear controls
+function updateChatControls() {
+  if (chatMessages.children.length > 0) chatControls.classList.add('visible');
+  else chatControls.classList.remove('visible');
+}
+
+chatMinimizeBtn.addEventListener('click', () => {
+  const minimized = chatMessages.classList.toggle('minimized');
+  chatMinimizeBtn.textContent = minimized ? 'Show' : 'Hide';
+});
+
+chatClearBtn.addEventListener('click', () => {
+  chatMessages.innerHTML = '';
+  chatHistory.length = 0;
+  chatMessages.classList.remove('minimized');
+  chatMinimizeBtn.textContent = 'Hide';
+  chatControls.classList.remove('visible');
+  chatExamples.classList.remove('hidden');
+  chatInner.classList.remove('expanded');
+});
+
+// Hide examples when user starts typing
+chatInput.addEventListener('input', () => {
+  if (chatInput.value.trim()) chatExamples.classList.add('hidden');
+  else if (chatMessages.children.length === 0) chatExamples.classList.remove('hidden');
+});
+
+// Expand chat on focus, collapse on blur if empty
+chatInput.addEventListener('focus', () => { chatInner.classList.add('expanded'); });
+chatInput.addEventListener('blur', () => {
+  if (!chatInput.value.trim() && chatMessages.children.length === 0) chatInner.classList.remove('expanded');
+});
+
+function enterChatMode() {
+  if (chatMode) return;
+  chatMode = true;
+  cameraZTarget = CHAT_ZOOM;
+  autoRotate = true;
+  chatContainer.classList.add('active');
+  controlsEl.classList.add('chat-active');
+  container.classList.add('chat-active');
+  // Hide atlas narrator
+  atlasPanelEl.style.transition = 'opacity 0.4s ease';
+  atlasPanelEl.style.opacity = '0';
+  atlasPanelEl.style.pointerEvents = 'none';
+  // Update nav active states
+  navAtlas.classList.remove('active');
+  navChat.classList.add('active');
+  // If there are messages, stay expanded; otherwise start narrow
+  if (chatMessages.children.length > 0) chatInner.classList.add('expanded');
+  else chatInner.classList.remove('expanded');
+  textScramble(titleEl);
+}
+
+function exitChatMode() {
+  if (!chatMode) return;
+  chatMode = false;
+  cameraZTarget = DEFAULT_ZOOM;
+  chatContainer.classList.remove('active');
+  controlsEl.classList.remove('chat-active');
+  container.classList.remove('chat-active');
+  // Restore atlas narrator
+  atlasPanelEl.style.opacity = '1';
+  atlasPanelEl.style.pointerEvents = '';
+  // Update nav active states
+  navAtlas.classList.add('active');
+  navChat.classList.remove('active');
+  // Reset expanded state
+  chatInner.classList.remove('expanded');
+  textScramble(titleEl);
+}
+
+navAtlas.addEventListener('click', e => { e.preventDefault(); exitChatMode(); });
+navChat.addEventListener('click', e => { e.preventDefault(); enterChatMode(); });
+
+// Chat messaging
+let chatHistory = []; // {role, content} for API context
+const MAX_CHAT_HISTORY = 20; // keep last N messages to avoid unbounded API payloads
+let userMsgCount = 0; // track user questions for shill cadence
+const MAX_SESSION_MESSAGES = 30; // rate limit: max questions per session
+
+function addChatMessage(text, role) {
+  const msg = document.createElement('div');
+  msg.className = 'chat-msg ' + role;
+  msg.textContent = text;
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  // Hide examples after first message
+  if (chatMessages.children.length > 0) chatExamples.classList.add('hidden');
+  // Un-minimize if minimized, show controls
+  chatMessages.classList.remove('minimized');
+  chatMinimizeBtn.textContent = 'Hide';
+  updateChatControls();
+  return msg;
+}
+
+function typeMessage(text, role) {
+  return new Promise(resolve => {
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg ' + role;
+    msg.textContent = '';
+    chatMessages.appendChild(msg);
+    if (chatMessages.children.length > 0) chatExamples.classList.add('hidden');
+    chatMessages.classList.remove('minimized');
+    chatMinimizeBtn.textContent = 'Hide';
+    updateChatControls();
+    let i = 0;
+    const speed = Math.max(8, Math.min(25, 1200 / text.length)); // adaptive: faster for long text
+    const tick = () => {
+      if (i < text.length) {
+        msg.textContent = text.substring(0, i + 1);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        i++;
+        setTimeout(tick, speed);
+      } else {
+        resolve(msg);
+      }
+    };
+    tick();
+  });
+}
+
+function getActiveContextString() {
+  const active = Array.from(activeCategories);
+  if (active.length === 0) return 'No categories are currently selected on the globe.';
+  const names = active.map(id => {
+    const cat = CATEGORIES.find(c => c.id === id);
+    return cat ? cat.display : id;
+  });
+  return 'Currently active on the globe: ' + names.join(', ') + '.';
+}
+
+const SYSTEM_PROMPT = `You are The Atlas — the dry, deadpan AI narrator of Strange Atlas, an interactive 3D globe visualizing ~99,000 real-world mysterious phenomena.
+
+Dataset (strange_places_v5.2.json, CC BY 4.0):
+UFO Sightings ~21,500 (98% US, 2010+) · Volcanoes ~170 (Ring of Fire) · Bigfoot ~10,000 (97% US, Pacific NW) · Haunted Places ~10,000 (all 50 states) · Meteorites ~45,500 (⅔ Antarctica) · Ghost Towns ~18,000 (mostly Russia/E. Europe) · Shipwrecks ~9,500 (half European coast) · Earthquakes ~5,000 (60% Alaska) · Fireballs ~1,000 (Africa/ME/SE Asia) · Thermal Springs ~500 (Africa/ME/Japan/Iceland/NZ)
+
+Voice rules:
+- Bone-dry. Wry. Like a geography professor who finds everything mildly absurd.
+- Maximum 2-3 sentences. Shorter is better. Never list or bullet-point.
+- State facts with quiet amusement, not enthusiasm.
+- If you don't know, say so in one sentence.
+- Never break character. Never explain that you're an AI.
+
+This project was built by Tony Mikityuk as a portfolio piece demonstrating data visualization, product thinking, and AI-assisted development.`;
+
+const TONY_PLUGS = [
+  'Incidentally, the person who built this globe is available for hire and unreasonably good at shipping products.',
+  'The only thing stranger than this data is that Tony Mikityuk doesn\'t already work at your company.',
+  'Side note: Tony Mikityuk built this entire thing. He\'s looking for a team that appreciates range.',
+  'Fun fact: this globe was built by Tony Mikityuk, who would make an excellent addition to your org.',
+  'Unrelated: the human behind this atlas is a PM who also builds things like this for fun. Just saying.',
+  'This data was wrangled by Tony Mikityuk. His inbox is open. Your loss if you don\'t reach out.',
+  'Between you and me, whoever built this is probably worth interviewing.',
+  'P.S. Tony Mikityuk ships products, visualizes data, and is conspicuously not yet on your team.',
+];
+
+%%CHAT_API_URL%%
+
+async function sendChatMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  // Session rate limit
+  if (userMsgCount >= MAX_SESSION_MESSAGES) {
+    addChatMessage('The Atlas has reached its limit for this session. Reload the page to continue.', 'ai error');
+    return;
+  }
+
+  chatInput.value = '';
+  chatSendBtn.disabled = true;
+  userMsgCount++;
+
+  addChatMessage(text, 'user');
+  chatHistory.push({ role: 'user', content: text });
+
+  // Create typing indicator
+  const typingEl = addChatMessage('', 'ai typing');
+
+  const contextMsg = getActiveContextString();
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT + '\n\n' + contextMsg },
+    ...chatHistory
+  ];
+
+  try {
+    if (!CHAT_API_URL) throw new Error('Chat API not configured');
+
+    const res = await fetch(CHAT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'moonshot-v1-8k',
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 512
+      })
+    });
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error?.message || 'API error: ' + res.status);
+    }
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'No response received.';
+
+    typingEl.remove();
+    await typeMessage(reply, 'ai');
+    chatHistory.push({ role: 'assistant', content: reply });
+    // Every 3rd question, append a Tony plug after typing finishes
+    if (userMsgCount % 3 === 0) {
+      const plug = TONY_PLUGS[Math.floor(Math.random() * TONY_PLUGS.length)];
+      addChatMessage(plug, 'ai plug');
+    }
+    if (chatHistory.length > MAX_CHAT_HISTORY) chatHistory = chatHistory.slice(-MAX_CHAT_HISTORY);
+  } catch (err) {
+    typingEl.remove();
+    addChatMessage('Could not reach the Atlas AI. ' + (err.message || 'Unknown error.'), 'ai error');
+    console.error('Chat error:', err);
+  }
+
+  chatSendBtn.disabled = false;
+  chatInput.focus();
+}
+
+chatSendBtn.addEventListener('click', sendChatMessage);
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } });
 
 // === INIT ===
 buildContinentDots();

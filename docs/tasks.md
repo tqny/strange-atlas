@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-BUILD — Dashboard Page (Phase 6)
+BUILD — About Page (Phase 7)
 
 ## Planning Tasks
 
@@ -71,10 +71,17 @@ BUILD — Dashboard Page (Phase 6)
 - [x] **Intersection rendering on globe** — Per-instance `instanceOverlap` attribute + `uOverlapFade` uniform drives shader-based visibility. Post-fade matrix zeroing for raycasting.
 - [x] **Intersection UX refinement** — Smooth ~300ms lerp fade (factor 0.08), 15% brightness boost on overlap-surviving points. Handles rapid toggling, category changes mid-fade, and force-disable.
 
-### Phase 6: Dashboard Page
+### Phase 6: AI Chat Mode (Pivot — replaced Dashboard)
 
-- [ ] **Dashboard design** — Statistical analysis view: category breakdown, reports over time, by-state choropleth, top states. Reference: Strange Places dashboard.
-- [ ] **Dashboard implementation** — Separate page with shared nav. Chart library TBD.
+- [x] **Nav links** — Atlas / Ask Atlas / About. Renamed "Chat with AI" to "Ask Atlas" for editorial tone.
+- [x] **Chat mode transition** — Zoom-out animation, chat rises from bottom, reverse on Atlas click. Category toggles stay in place (not sliding up with globe). Pointer-events pass through empty chat container to globe. Double-click globe restarts auto-rotate.
+- [x] **Chat UI** — Editorial message styling (user pills, AI left-border quotes). Hide/Show toggle preserves context. New chat clears conversation. 240px max message height. Title scramble effect on page load, click, and mode switches. Subtitle updated to "~99,000 strange places · 10 categories".
+- [x] **Kimi API integration** — Moonshot `moonshot-v1-8k` via Cloudflare Worker proxy (`worker/proxy.js`). API key server-side as Worker secret. CORS handled by proxy. Context-aware system prompt includes active categories.
+- [x] **Build script update** — `build-globe.py` injects `CHAT_API_URL` env var (proxy URL). API key no longer in browser.
+- [x] **Atlas voice tuning** — Dry, deadpan, 1-2 sentence responses. System prompt rewritten for concision and character.
+- [x] **Typing animation** — Character-by-character reveal for AI responses. Adaptive speed based on response length.
+- [x] **Tony plug** — Witty hire-me aside appended every 3rd question. 8 randomized variants, subtle italic styling.
+- [x] **Rate limiting** — 30 messages/session (client-side) + 60 requests/hour/IP (worker-side) + 512 max_tokens cap.
 
 ### Phase 7: About Page
 
