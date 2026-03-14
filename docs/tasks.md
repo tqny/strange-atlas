@@ -73,11 +73,11 @@ BUILD — AI Chat Mode (Phase 6)
 
 ### Phase 6: AI Chat Mode (Pivot — replaced Dashboard)
 
-- [ ] **Nav links** — Add Atlas / Chat with AI / About links to existing `#site-nav`, right-aligned. "Atlas" = default globe view, "Chat with AI" = chat mode, "About" = `about.html`.
-- [ ] **Chat mode transition** — Smooth zoom-out animation (~800ms lerp), globe to top 50% of viewport. Chat container rises from bottom. Reverse animation on "Atlas" click. Disable scroll zoom in chat mode. Hide Atlas narrator. Keep category toggles functional.
-- [ ] **Chat UI** — `#chat-container` covering bottom ~50% viewport. Message area, input field, send button. Example question chips. Design tokens consistent with existing UI.
-- [ ] **Kimi 2.5 API integration** — Client-side fetch. API key injected at build time (`%%KIMI_API_KEY%%`). Context-aware system prompt includes active categories. Streaming if supported. Graceful error handling.
-- [ ] **Build script update** — `build-globe.py` reads `KIMI_API_KEY` from env, replaces `%%KIMI_API_KEY%%` marker.
+- [x] **Nav links** — Atlas / Ask Atlas / About. Renamed "Chat with AI" to "Ask Atlas" for editorial tone.
+- [x] **Chat mode transition** — Zoom-out animation, chat rises from bottom, reverse on Atlas click. Category toggles stay in place (not sliding up with globe). Pointer-events pass through empty chat container to globe. Double-click globe restarts auto-rotate.
+- [x] **Chat UI** — Editorial message styling (user pills, AI left-border quotes). Hide/Show toggle preserves context. New chat clears conversation. 240px max message height. Title scramble effect on page load, click, and mode switches. Subtitle updated to "~99,000 strange places · 10 categories".
+- [→] **Kimi 2.5 API integration** — Client-side fetch. API key injected at build time (`%%KIMI_API_KEY%%`). Context-aware system prompt includes active categories. Streaming if supported. Graceful error handling. Scaffolded but untested — next task.
+- [→] **Build script update** — `build-globe.py` reads `KIMI_API_KEY` from env, replaces `%%KIMI_API_KEY%%` marker. Scaffolded, needs verification.
 
 ### Phase 7: About Page
 

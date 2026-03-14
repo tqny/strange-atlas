@@ -13,7 +13,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 #globe-container.chat-active { transform: translateY(-25%); }
 canvas { display: block; }
 #site-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 10; pointer-events: none; display: flex; align-items: center; justify-content: space-between; padding: 28px 36px 0; }
-#site-nav h1 { font-weight: 600; font-size: 1.4rem; letter-spacing: -0.01em; color: var(--text); }
+#site-nav h1 { font-weight: 600; font-size: 1.6rem; letter-spacing: -0.01em; color: var(--text); cursor: pointer; pointer-events: auto; }
 #site-nav .subtitle { font-weight: 300; font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.03em; }
 #site-nav .nav-links { display: flex; gap: 16px; pointer-events: auto; }
 #site-nav .nav-links a { font-size: 0.75rem; color: var(--text-dim); text-decoration: none; transition: color 0.2s ease; }
@@ -21,9 +21,9 @@ canvas { display: block; }
 #site-nav .nav-links a.active { color: var(--text); font-weight: 500; }
 #controls { position: fixed; top: 50%; left: 0; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: row; align-items: flex-start; transition: transform 0.3s ease, top 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); padding-left: 36px; }
 #controls.collapsed { transform: translateY(-50%) translateX(calc(-100% + 36px)); }
-#controls.chat-active { top: 80px; transform: translateY(0); }
-#controls.chat-active.collapsed { transform: translateY(0) translateX(calc(-100% + 36px)); }
-#controls.chat-active #controls-inner { max-height: calc(50vh - 100px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.1) transparent; }
+#controls.chat-active { top: 50%; transform: translateY(-50%); }
+#controls.chat-active.collapsed { transform: translateY(-50%) translateX(calc(-100% + 36px)); }
+#controls.chat-active #controls-inner { }
 #controls-inner { display: flex; flex-direction: column; }
 #controls.collapsed #controls-inner { opacity: 0; pointer-events: none; }
 #category-toggles { display: flex; flex-direction: column; gap: 2px; transition: opacity 0.2s ease; }
@@ -57,19 +57,25 @@ canvas { display: block; }
 #tooltip-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
 #tooltip-meta { font-size: 0.66rem; color: var(--text-dim); margin-bottom: 5px; }
 #tooltip-desc { font-size: 0.7rem; color: var(--text-mid); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-#chat-container { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; z-index: 15; transform: translateY(100%); transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: none; }
-#chat-container.active { transform: translateY(0); pointer-events: auto; }
-#chat-inner { display: flex; flex-direction: column; width: 240px; max-width: 90vw; max-height: calc(50vh - 20px); padding: 24px 0 20px; overflow: hidden; transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); justify-content: flex-end; }
-#chat-inner.expanded { width: 400px; }
-#chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 12px; scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.15) transparent; }
-#chat-messages::-webkit-scrollbar { width: 4px; }
-#chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
-.chat-msg { max-width: 85%; padding: 10px 14px; font-size: 0.8rem; line-height: 1.55; border-radius: 12px; }
-.chat-msg.user { align-self: flex-end; background: var(--text); color: #fff; border-bottom-right-radius: 4px; }
-.chat-msg.ai { align-self: flex-start; background: var(--panel-bg); color: var(--text); border: 1px solid rgba(0,0,0,0.06); border-bottom-left-radius: 4px; backdrop-filter: blur(12px); }
-.chat-msg.ai.typing::after { content: ''; display: inline-block; width: 4px; height: 14px; background: var(--text-dim); margin-left: 2px; animation: blink 0.8s infinite; vertical-align: text-bottom; }
+#chat-container { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; z-index: 9; transform: translateY(100%); transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: none; }
+#chat-container.active { transform: translateY(0); }
+#chat-inner { display: flex; flex-direction: column; width: 320px; max-width: 90vw; max-height: calc(50vh - 20px); padding: 24px 0 20px; overflow: hidden; transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); justify-content: flex-end; pointer-events: auto; }
+#chat-inner.expanded { width: 520px; }
+#chat-messages { flex: 0 1 auto; max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 8px 4px 16px; scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.1) transparent; }
+#chat-messages::-webkit-scrollbar { width: 3px; }
+#chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+.chat-msg { max-width: 82%; padding: 10px 16px; font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 400; line-height: 1.6; letter-spacing: 0.01em; }
+.chat-msg.user { align-self: flex-end; background: rgba(0,0,0,0.05); color: var(--text); border-radius: 18px 18px 6px 18px; }
+.chat-msg.ai { align-self: flex-start; background: transparent; color: var(--text-mid); border-radius: 0; padding: 4px 2px; font-weight: 300; line-height: 1.65; border-left: 1.5px solid rgba(0,0,0,0.08); padding-left: 14px; margin-left: 2px; }
+.chat-msg.ai.typing::after { content: ''; display: inline-block; width: 3px; height: 12px; background: var(--text-dim); margin-left: 3px; animation: blink 0.8s infinite; vertical-align: text-bottom; border-radius: 1px; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-.chat-msg.error { color: var(--text-dim); font-style: italic; }
+.chat-msg.error { color: var(--text-dim); font-style: italic; font-weight: 300; }
+#chat-controls { display: none; align-items: center; justify-content: space-between; padding: 4px 2px; }
+#chat-controls.visible { display: flex; }
+#chat-controls button { font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 400; color: var(--text-dim); background: transparent; border: none; cursor: pointer; padding: 2px 6px; transition: color 0.2s ease; letter-spacing: 0.03em; }
+#chat-controls button:hover { color: var(--text); }
+#chat-messages.minimized { max-height: 0; padding: 0 4px; overflow: hidden; opacity: 0; transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease; }
+#chat-messages:not(.minimized) { transition: max-height 0.3s ease, opacity 0.2s ease 0.1s; }
 #chat-input-wrap { display: flex; align-items: center; background: rgba(0,0,0,0.05); border-radius: 24px; padding: 4px 4px 4px 16px; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 #chat-input { flex: 1; padding: 8px 0; font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 400; color: var(--text); background: transparent; border: none; outline: none; resize: none; min-height: 20px; max-height: 80px; line-height: 1.4; overflow-y: hidden; }
 #chat-input::placeholder { color: var(--text-dim); }
@@ -86,11 +92,11 @@ canvas { display: block; }
 </head>
 <body>
 <div id="globe-container"></div>
-<nav id="site-nav"><div><h1>Strange Atlas</h1><div class="subtitle">98,775 phenomena across 10 categories</div></div><div class="nav-links"><a href="#" id="nav-atlas" class="active">Atlas</a><a href="#" id="nav-chat">Chat with AI</a><a href="about.html">About</a></div></nav>
+<nav id="site-nav"><div><h1>Strange Atlas</h1><div class="subtitle">~99,000 strange places · 10 categories</div></div><div class="nav-links"><a href="#" id="nav-atlas" class="active">Atlas</a><a href="#" id="nav-chat">Ask Atlas</a><a href="about.html">About</a></div></nav>
 <aside id="controls" class="collapsed"><div id="controls-inner"><div id="overlap-control"><div id="overlap-switch" class="disabled"><span class="switch-track"><span class="switch-thumb"></span></span><span class="switch-label">Intersections</span></div></div><div id="category-toggles"></div></div><button id="controls-toggle" aria-label="Toggle categories">›</button></aside>
 <footer id="atlas-panel" class="collapsed"><button id="atlas-toggle" aria-label="Toggle observation">&#x203A;</button><p id="atlas-text">Select a category to begin.</p></footer>
 <div id="tooltip" class="hidden"><div id="tooltip-name"></div><div id="tooltip-meta"></div><div id="tooltip-desc"></div></div>
-<div id="chat-container"><div id="chat-inner"><div id="chat-messages"></div><div id="chat-input-wrap"><input id="chat-input" type="text" placeholder="Ask about the data..." autocomplete="off"><button id="chat-send" aria-label="Send message"><svg viewBox="0 0 24 24"><path d="M12 19V5M12 5l-5 5M12 5l5 5"/></svg></button></div><div id="chat-examples"></div></div></div>
+<div id="chat-container"><div id="chat-inner"><div id="chat-messages"></div><div id="chat-controls"><button id="chat-minimize" aria-label="Minimize chat">Hide</button><button id="chat-clear" aria-label="Clear conversation">New chat</button></div><div id="chat-input-wrap"><input id="chat-input" type="text" placeholder="Ask about the data..." autocomplete="off"><button id="chat-send" aria-label="Send message"><svg viewBox="0 0 24 24"><path d="M12 19V5M12 5l-5 5M12 5l5 5"/></svg></button></div><div id="chat-examples"></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // === INLINE DATA (injected by build) ===
@@ -730,6 +736,7 @@ renderer.domElement.addEventListener('mousemove', e => {
   prevMouse = {x:e.clientX, y:e.clientY};
 });
 renderer.domElement.addEventListener('mouseup', () => isDragging=false);
+renderer.domElement.addEventListener('dblclick', () => { autoRotate=true; velocity={x:0,y:0}; });
 renderer.domElement.addEventListener('mouseleave', () => isDragging=false);
 renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); if (chatMode) return; cameraZTarget = Math.max(2.2, Math.min(6, cameraZTarget + e.deltaY*0.002)); }, {passive:false});
 
@@ -1145,6 +1152,29 @@ function launchWaveAnimation() {
   requestAnimationFrame(tick);
 }
 
+// === TITLE SCRAMBLE ===
+const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+function textScramble(el, duration = 0.8, speed = 0.04) {
+  const text = el.dataset.text || (el.dataset.text = el.textContent);
+  const steps = duration / speed;
+  let step = 0;
+  const interval = setInterval(() => {
+    const progress = step / steps;
+    let scrambled = '';
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === ' ') { scrambled += ' '; continue; }
+      scrambled += progress * text.length > i ? text[i] : SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+    }
+    el.textContent = scrambled;
+    step++;
+    if (step > steps) { clearInterval(interval); el.textContent = text; }
+  }, speed * 1000);
+}
+
+const titleEl = document.querySelector('#site-nav h1');
+titleEl.addEventListener('click', () => textScramble(titleEl));
+setTimeout(() => textScramble(titleEl), 1000);
+
 // === CHAT MODE ===
 const chatContainer = document.getElementById('chat-container');
 const chatInner = document.getElementById('chat-inner');
@@ -1152,6 +1182,9 @@ const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send');
 const chatExamples = document.getElementById('chat-examples');
+const chatControls = document.getElementById('chat-controls');
+const chatMinimizeBtn = document.getElementById('chat-minimize');
+const chatClearBtn = document.getElementById('chat-clear');
 const navAtlas = document.getElementById('nav-atlas');
 const navChat = document.getElementById('nav-chat');
 
@@ -1167,6 +1200,27 @@ EXAMPLE_QUESTIONS.forEach(q => {
   chip.textContent = q;
   chip.addEventListener('click', () => { chatInner.classList.add('expanded'); chatInput.value = q; sendChatMessage(); });
   chatExamples.appendChild(chip);
+});
+
+// Minimize / Clear controls
+function updateChatControls() {
+  if (chatMessages.children.length > 0) chatControls.classList.add('visible');
+  else chatControls.classList.remove('visible');
+}
+
+chatMinimizeBtn.addEventListener('click', () => {
+  const minimized = chatMessages.classList.toggle('minimized');
+  chatMinimizeBtn.textContent = minimized ? 'Show' : 'Hide';
+});
+
+chatClearBtn.addEventListener('click', () => {
+  chatMessages.innerHTML = '';
+  chatHistory.length = 0;
+  chatMessages.classList.remove('minimized');
+  chatMinimizeBtn.textContent = 'Hide';
+  chatControls.classList.remove('visible');
+  chatExamples.classList.remove('hidden');
+  chatInner.classList.remove('expanded');
 });
 
 // Hide examples when user starts typing
@@ -1199,6 +1253,7 @@ function enterChatMode() {
   // If there are messages, stay expanded; otherwise start narrow
   if (chatMessages.children.length > 0) chatInner.classList.add('expanded');
   else chatInner.classList.remove('expanded');
+  textScramble(titleEl);
 }
 
 function exitChatMode() {
@@ -1216,6 +1271,7 @@ function exitChatMode() {
   navChat.classList.remove('active');
   // Reset expanded state
   chatInner.classList.remove('expanded');
+  textScramble(titleEl);
 }
 
 navAtlas.addEventListener('click', e => { e.preventDefault(); exitChatMode(); });
@@ -1233,6 +1289,10 @@ function addChatMessage(text, role) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
   // Hide examples after first message
   if (chatMessages.children.length > 0) chatExamples.classList.add('hidden');
+  // Un-minimize if minimized, show controls
+  chatMessages.classList.remove('minimized');
+  chatMinimizeBtn.textContent = 'Hide';
+  updateChatControls();
   return msg;
 }
 
