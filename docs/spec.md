@@ -6,7 +6,7 @@
 
 An interactive 3D globe that visualizes ~99,000 real-world mysterious phenomena — UFO sightings, bigfoot encounters, haunted places, volcanoes, shipwrecks, and more — across 10 categories. Users toggle categories on and off, watch the globe respond with colored scatter points and overlap intensification, read dry Atlas observations, and hover for record details.
 
-Three-page site: Globe (interactive map), Dashboard (statistical analysis), About (reviewer brief). Deployed to GitHub Pages.
+Two-page site: Globe (interactive map + AI chat mode), About (reviewer brief). Deployed to GitHub Pages.
 
 ## Target User
 
@@ -25,10 +25,10 @@ A reviewer lands on the page, selects two categories, watches the globe respond,
 - Hover on a point: tooltip with name, category, date, brief description
 - Deployed to GitHub Pages
 
-## Post-MVP Pages
+## Post-MVP Features
 
-- **Dashboard** — Statistical analysis view: category breakdown charts, reports over time, by-state choropleth, top states. Reference: Strange Places dashboard.
-- **About** — In-product reviewer brief: data sources, design intent, build story, portfolio framing.
+- **AI Chat Mode** — Chat interface on the globe page. "Chat with AI" nav link triggers smooth globe zoom-out, chat UI rises from bottom half of viewport. Kimi 2.5 API integration, context-aware of active category selections. Example questions to inspire exploration. Globe stays visible, rotating, and toggleable while chatting.
+- **About** — In-product reviewer brief: data sources, design intent, build story, portfolio framing. Separate page (`about.html`).
 
 ## Non-Goals (MVP)
 

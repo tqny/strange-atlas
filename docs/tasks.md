@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-BUILD — Dashboard Page (Phase 6)
+BUILD — AI Chat Mode (Phase 6)
 
 ## Planning Tasks
 
@@ -71,10 +71,13 @@ BUILD — Dashboard Page (Phase 6)
 - [x] **Intersection rendering on globe** — Per-instance `instanceOverlap` attribute + `uOverlapFade` uniform drives shader-based visibility. Post-fade matrix zeroing for raycasting.
 - [x] **Intersection UX refinement** — Smooth ~300ms lerp fade (factor 0.08), 15% brightness boost on overlap-surviving points. Handles rapid toggling, category changes mid-fade, and force-disable.
 
-### Phase 6: Dashboard Page
+### Phase 6: AI Chat Mode (Pivot — replaced Dashboard)
 
-- [ ] **Dashboard design** — Statistical analysis view: category breakdown, reports over time, by-state choropleth, top states. Reference: Strange Places dashboard.
-- [ ] **Dashboard implementation** — Separate page with shared nav. Chart library TBD.
+- [ ] **Nav links** — Add Atlas / Chat with AI / About links to existing `#site-nav`, right-aligned. "Atlas" = default globe view, "Chat with AI" = chat mode, "About" = `about.html`.
+- [ ] **Chat mode transition** — Smooth zoom-out animation (~800ms lerp), globe to top 50% of viewport. Chat container rises from bottom. Reverse animation on "Atlas" click. Disable scroll zoom in chat mode. Hide Atlas narrator. Keep category toggles functional.
+- [ ] **Chat UI** — `#chat-container` covering bottom ~50% viewport. Message area, input field, send button. Example question chips. Design tokens consistent with existing UI.
+- [ ] **Kimi 2.5 API integration** — Client-side fetch. API key injected at build time (`%%KIMI_API_KEY%%`). Context-aware system prompt includes active categories. Streaming if supported. Graceful error handling.
+- [ ] **Build script update** — `build-globe.py` reads `KIMI_API_KEY` from env, replaces `%%KIMI_API_KEY%%` marker.
 
 ### Phase 7: About Page
 

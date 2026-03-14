@@ -98,18 +98,35 @@ strange-atlas/
 └── V3-master-prompt.md
 ```
 
-## Future: Multi-Page Site
+## AI Chat Mode (Phase 6)
 
-The current globe will become one page of a three-page site:
+The globe page has two modes, toggled via nav links:
 
-1. **Globe** (current) — interactive 3D dot-matrix map with category toggles and Atlas narrator
-2. **Dashboard** (Phase 7) — statistical analysis: category breakdown, reports over time, by-state view. Reference: Strange Places dashboard.
-3. **About** (Phase 8) — in-product reviewer brief: data sources, design intent, build story
+1. **Atlas mode** (default) — full-viewport 3D globe with category toggles and Atlas narrator
+2. **Chat mode** — globe zooms out to top ~50% of viewport, chat UI rises from bottom. Kimi 2.5 API. Context-aware of active categories.
 
-These will share a nav component and design tokens. The Phase 9 modular refactor converts the single-file prototype into ES modules with runtime data fetching.
+**Transition mechanics:**
+- Camera lerps from current z to ~8.0, y shifts up. ~800ms ease-out via lerp in animate loop.
+- Chat container slides up from `translateY(100%)` to `translateY(0)` via CSS transition.
+- Scroll zoom disabled, drag rotation stays enabled, auto-rotate re-enabled.
+- Atlas narrator hidden. Category toggles remain functional.
+- "Atlas" nav click reverses all transitions.
+
+**API integration:**
+- Client-side fetch to Kimi 2.5 API
+- API key injected at build time (`%%KIMI_API_KEY%%` marker, replaced by `build-globe.py`)
+- System prompt includes dataset summary and currently active categories
+- Streaming response if supported
+
+## Future: About Page
+
+**About** (Phase 7) — in-product reviewer brief: data sources, design intent, build story. Separate page (`about.html`), shares nav and design tokens.
+
+The Phase 9 modular refactor converts the single-file prototype into ES modules with runtime data fetching.
 
 ## Boundaries and Swap Points
 
 - **Atlas Narrator** is the primary swap point: Phase 2 replaces static lookup with live Claude API calls. The interface stays the same.
 - **Data loading** is isolated so the current build-time inlining can switch to runtime fetch when the project modularizes (Phase 9).
-- **Globe rendering** is self-contained in `globe-template.html`. Future pages (Dashboard, About) can share nav/tokens without coupling to the globe code.
+- **Globe rendering** is self-contained in `globe-template.html`. The About page shares nav/tokens without coupling to the globe code.
+- **Chat mode** is a UI state within the globe page, not a separate page. Camera position and chat container visibility are the only state changes. All globe functionality (categories, overlap, tooltips) remains active.

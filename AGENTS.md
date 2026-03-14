@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**BUILD — Dashboard Page (Phase 6)**
+**BUILD — AI Chat Mode (Phase 6)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -19,7 +19,7 @@ Update this field as the project advances.
 
 Phase 5 (Overlap / Intersections) is complete. Next up:
 
-1. **Dashboard page** — Statistical analysis view: category breakdown, reports over time, by-state choropleth, top states. Separate page with shared nav.
+1. **AI Chat Mode** — Chat interface on the globe page. "Chat with AI" nav link triggers smooth globe zoom-out, chat UI rises from bottom half of viewport. Kimi 2.5 API, context-aware of active categories. Globe stays visible, rotating, toggleable. Reverse animation on "Atlas" nav click.
 2. **About page** — In-product reviewer brief: data sources, design intent, build story, portfolio framing.
 
 ---
@@ -56,7 +56,8 @@ For any thread picking up this project:
 - **Antimeridian handling** — Polygons wrapping ±180° break PIP ray-casting. Handled by `splitAtAntimeridian()` (2-wrap-edge, e.g. Eurasia) and `fixPolarPoly()` (1-wrap-edge, e.g. Antarctica). See inline comments in `globe-template.html`.
 - **Data** — 10 categories, ~99K total points. Pre-split JSON in `data/`. Source: `strange_places_v5.2.json`.
 - **Atlas narrator** — pre-scripted in MVP. Designed as swap point for Phase 2 Claude API.
-- **Future pages** — Dashboard (Phase 6) and About (Phase 7) are next. Current globe will become one page of a multi-page site. Deployment (Phase 8) follows after both pages are built.
+- **AI Chat Mode** — Phase 6. Chat interface on the globe page (not a separate page). Kimi 2.5 API. Globe zooms out, chat rises from bottom. Context-aware of active categories.
+- **Future pages** — About (Phase 7) is next. Deployment (Phase 8) follows.
 
 ---
 

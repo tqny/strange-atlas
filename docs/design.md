@@ -71,9 +71,19 @@ Subtle auto-rotation when no interaction is happening. Planned: ambient dot puls
 - Scroll: zoom between distance 2.2–6.0.
 - Auto-rotate: 0.0008 rad/frame, stops on first interaction.
 
+### AI Chat Mode (Phase 6)
+
+- **Nav bar:** Three links right-aligned in `#site-nav`: Atlas · Chat with AI · About. Inter 400, `--text-dim`, active state `--text` / 500 weight. `pointer-events: auto` on links.
+- **Chat transition:** Globe lerps to zoomed-out position (~8.0 z), shifts up. Chat container slides up from bottom covering ~50% viewport. ~800ms ease-out. Reverse on "Atlas" click.
+- **Chat container:** Fixed bottom 50%. Same glass-panel aesthetic as existing UI — `rgba(255,255,255,0.85)`, `backdrop-filter: blur(12px)`. Inter font throughout.
+- **Messages:** User messages right-aligned, AI messages left-aligned. Simple, clean bubbles.
+- **Example questions:** Chip-style buttons below input when chat is empty. Same `--text-dim` styling, subtle border.
+- **Globe in chat mode:** Zoomed out, auto-rotating, categories toggleable. Scroll zoom disabled. Atlas narrator hidden.
+
 ### Deviations from Pass 1
 
 - **Dark → Light:** Original direction was dark editorial (#0a0a0a background). Shifted to light (#f5f5f5) during build for a cleaner, more contemporary feel.
 - **Flat map → Globe:** Original spec was equirectangular Canvas 2D projection. Pivoted to Three.js 3D globe during Phase 2 for stronger visual impact.
 - **Playfair Display dropped:** Original plan used Playfair Display for the wordmark. Dropped in favor of Inter 600 for a more cohesive single-font system.
 - **14 → 10 categories:** Tornadoes, caves, megaliths, storm events cut for performance and scope.
+- **Dashboard → AI Chat:** Dashboard page (static charts) replaced with AI Chat mode on the globe page. More engaging, better portfolio piece, keeps globe as hero element.

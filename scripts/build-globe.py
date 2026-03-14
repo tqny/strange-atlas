@@ -31,10 +31,19 @@ for cid, fname in files.items():
 cat_data_str = 'const CATEGORY_DATA = {\n' + ',\n'.join(cat_chunks) + '\n};'
 inline_data = f'const WORLD_TOPO = {topo};\nconst COUNTRIES_TOPO = {countries_topo};\n{cat_data_str}'
 
+# Read API key from environment
+kimi_key = os.environ.get('KIMI_API_KEY', '')
+kimi_js = f"const KIMI_API_KEY = {json.dumps(kimi_key)};"
+
 # Read template
 template = open(os.path.join(ROOT, 'globe-template.html')).read()
 output = template.replace('%%INLINE_DATA%%', inline_data)
+output = output.replace('%%KIMI_API_KEY%%', kimi_js)
 
 outpath = os.path.join(ROOT, 'globe-preview.html')
 open(outpath, 'w').write(output)
 print(f'Built {outpath}: {os.path.getsize(outpath)/1024/1024:.1f}MB')
+if kimi_key:
+    print('Kimi API key: injected')
+else:
+    print('Kimi API key: not set (chat will show error). Set KIMI_API_KEY env var to enable.')
