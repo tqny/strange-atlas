@@ -31,19 +31,19 @@ for cid, fname in files.items():
 cat_data_str = 'const CATEGORY_DATA = {\n' + ',\n'.join(cat_chunks) + '\n};'
 inline_data = f'const WORLD_TOPO = {topo};\nconst COUNTRIES_TOPO = {countries_topo};\n{cat_data_str}'
 
-# Read API key from environment
-kimi_key = os.environ.get('KIMI_API_KEY', '')
-kimi_js = f"const KIMI_API_KEY = {json.dumps(kimi_key)};"
+# Read chat API proxy URL from environment
+chat_api_url = os.environ.get('CHAT_API_URL', '')
+chat_api_js = f"const CHAT_API_URL = {json.dumps(chat_api_url)};"
 
 # Read template
 template = open(os.path.join(ROOT, 'globe-template.html')).read()
 output = template.replace('%%INLINE_DATA%%', inline_data)
-output = output.replace('%%KIMI_API_KEY%%', kimi_js)
+output = output.replace('%%CHAT_API_URL%%', chat_api_js)
 
 outpath = os.path.join(ROOT, 'globe-preview.html')
 open(outpath, 'w').write(output)
 print(f'Built {outpath}: {os.path.getsize(outpath)/1024/1024:.1f}MB')
-if kimi_key:
-    print('Kimi API key: injected')
+if chat_api_url:
+    print(f'Chat API URL: {chat_api_url}')
 else:
-    print('Kimi API key: not set (chat will show error). Set KIMI_API_KEY env var to enable.')
+    print('Chat API URL: not set (chat will show error). Set CHAT_API_URL env var to enable.')

@@ -88,6 +88,9 @@ strange-atlas/
 │   ├── earthquakes.json
 │   ├── fireballs.json
 │   └── thermal-springs.json
+├── worker/
+│   ├── proxy.js           # Cloudflare Worker — Kimi API proxy
+│   └── wrangler.toml      # Worker deployment config
 ├── docs/
 │   ├── spec.md
 │   ├── architecture.md
@@ -113,10 +116,17 @@ The globe page has two modes, toggled via nav links:
 - "Atlas" nav click reverses all transitions.
 
 **API integration:**
-- Client-side fetch to Kimi 2.5 API
-- API key injected at build time (`%%KIMI_API_KEY%%` marker, replaced by `build-globe.py`)
+- Moonshot Kimi API (`moonshot-v1-8k` model) via Cloudflare Worker proxy (`worker/proxy.js`)
+- API key stored as Worker secret (server-side, never in browser)
+- `build-globe.py` injects `CHAT_API_URL` env var (proxy URL) via `%%CHAT_API_URL%%` marker
 - System prompt includes dataset summary and currently active categories
-- Streaming response if supported
+- Character-by-character typing animation with adaptive speed
+- Tony plug (witty hire-me aside) appended client-side every 3rd question
+
+**Rate limiting:**
+- Client-side: 30 messages per session
+- Server-side: 60 requests/hour per IP (in-memory Map in worker)
+- max_tokens capped at 512 in worker
 
 ## Future: About Page
 

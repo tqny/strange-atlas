@@ -70,6 +70,7 @@ canvas { display: block; }
 .chat-msg.ai.typing::after { content: ''; display: inline-block; width: 3px; height: 12px; background: var(--text-dim); margin-left: 3px; animation: blink 0.8s infinite; vertical-align: text-bottom; border-radius: 1px; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .chat-msg.error { color: var(--text-dim); font-style: italic; font-weight: 300; }
+.chat-msg.plug { font-size: 0.7rem; color: var(--text-dim); font-style: italic; border-left-color: rgba(0,0,0,0.04); opacity: 0.7; }
 #chat-controls { display: none; align-items: center; justify-content: space-between; padding: 4px 2px; }
 #chat-controls.visible { display: flex; }
 #chat-controls button { font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 400; color: var(--text-dim); background: transparent; border: none; cursor: pointer; padding: 2px 6px; transition: color 0.2s ease; letter-spacing: 0.03em; }
@@ -1280,6 +1281,8 @@ navChat.addEventListener('click', e => { e.preventDefault(); enterChatMode(); })
 // Chat messaging
 let chatHistory = []; // {role, content} for API context
 const MAX_CHAT_HISTORY = 20; // keep last N messages to avoid unbounded API payloads
+let userMsgCount = 0; // track user questions for shill cadence
+const MAX_SESSION_MESSAGES = 30; // rate limit: max questions per session
 
 function addChatMessage(text, role) {
   const msg = document.createElement('div');
@@ -1296,6 +1299,32 @@ function addChatMessage(text, role) {
   return msg;
 }
 
+function typeMessage(text, role) {
+  return new Promise(resolve => {
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg ' + role;
+    msg.textContent = '';
+    chatMessages.appendChild(msg);
+    if (chatMessages.children.length > 0) chatExamples.classList.add('hidden');
+    chatMessages.classList.remove('minimized');
+    chatMinimizeBtn.textContent = 'Hide';
+    updateChatControls();
+    let i = 0;
+    const speed = Math.max(8, Math.min(25, 1200 / text.length)); // adaptive: faster for long text
+    const tick = () => {
+      if (i < text.length) {
+        msg.textContent = text.substring(0, i + 1);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        i++;
+        setTimeout(tick, speed);
+      } else {
+        resolve(msg);
+      }
+    };
+    tick();
+  });
+}
+
 function getActiveContextString() {
   const active = Array.from(activeCategories);
   if (active.length === 0) return 'No categories are currently selected on the globe.';
@@ -1306,31 +1335,46 @@ function getActiveContextString() {
   return 'Currently active on the globe: ' + names.join(', ') + '.';
 }
 
-const SYSTEM_PROMPT = `You are The Atlas, the AI narrator of Strange Atlas — an interactive 3D globe visualizing ~99,000 real-world mysterious phenomena across 10 categories.
+const SYSTEM_PROMPT = `You are The Atlas — the dry, deadpan AI narrator of Strange Atlas, an interactive 3D globe visualizing ~99,000 real-world mysterious phenomena.
 
-Dataset categories and approximate counts:
-- UFO Sightings (~21,500 records, 98% US, 2010+)
-- Volcanoes (~170 entries, Pacific basin / Ring of Fire)
-- Bigfoot (~10,000 sightings, 97% US, concentrated Pacific Northwest)
-- Haunted Places (~10,000, spread across all 50 US states)
-- Meteorites (~45,500 recoveries, two-thirds Antarctica)
-- Ghost Towns (~18,000, majority Russia and Eastern Europe)
-- Shipwrecks (~9,500, half near European coastline)
-- Earthquakes (~5,000, Western Hemisphere, 60% Alaska)
-- Fireballs (~1,000, Africa/Middle East/Southeast Asia)
-- Thermal Springs (~500, Africa/Middle East/Japan/Iceland/NZ)
+Dataset (strange_places_v5.2.json, CC BY 4.0):
+UFO Sightings ~21,500 (98% US, 2010+) · Volcanoes ~170 (Ring of Fire) · Bigfoot ~10,000 (97% US, Pacific NW) · Haunted Places ~10,000 (all 50 states) · Meteorites ~45,500 (⅔ Antarctica) · Ghost Towns ~18,000 (mostly Russia/E. Europe) · Shipwrecks ~9,500 (half European coast) · Earthquakes ~5,000 (60% Alaska) · Fireballs ~1,000 (Africa/ME/SE Asia) · Thermal Springs ~500 (Africa/ME/Japan/Iceland/NZ)
 
-Data source: strange_places_v5.2.json (CC BY 4.0).
+Voice rules:
+- Bone-dry. Wry. Like a geography professor who finds everything mildly absurd.
+- Maximum 2-3 sentences. Shorter is better. Never list or bullet-point.
+- State facts with quiet amusement, not enthusiasm.
+- If you don't know, say so in one sentence.
+- Never break character. Never explain that you're an AI.
 
-Your tone is dry, precise, and slightly wry — like a well-read geographer with a deadpan sense of humor. Answer questions about the data with specificity. When you don't know exact numbers, say so honestly. Keep responses concise (2-4 sentences typically). You may reference geographic patterns, overlaps between categories, and notable clusters.`;
+This project was built by Tony Mikityuk as a portfolio piece demonstrating data visualization, product thinking, and AI-assisted development.`;
 
-%%KIMI_API_KEY%%
+const TONY_PLUGS = [
+  'Incidentally, the person who built this globe is available for hire and unreasonably good at shipping products.',
+  'The only thing stranger than this data is that Tony Mikityuk doesn\'t already work at your company.',
+  'Side note: Tony Mikityuk built this entire thing. He\'s looking for a team that appreciates range.',
+  'Fun fact: this globe was built by Tony Mikityuk, who would make an excellent addition to your org.',
+  'Unrelated: the human behind this atlas is a PM who also builds things like this for fun. Just saying.',
+  'This data was wrangled by Tony Mikityuk. His inbox is open. Your loss if you don\'t reach out.',
+  'Between you and me, whoever built this is probably worth interviewing.',
+  'P.S. Tony Mikityuk ships products, visualizes data, and is conspicuously not yet on your team.',
+];
+
+%%CHAT_API_URL%%
 
 async function sendChatMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
+
+  // Session rate limit
+  if (userMsgCount >= MAX_SESSION_MESSAGES) {
+    addChatMessage('The Atlas has reached its limit for this session. Reload the page to continue.', 'ai error');
+    return;
+  }
+
   chatInput.value = '';
   chatSendBtn.disabled = true;
+  userMsgCount++;
 
   addChatMessage(text, 'user');
   chatHistory.push({ role: 'user', content: text });
@@ -1345,34 +1389,39 @@ async function sendChatMessage() {
   ];
 
   try {
-    if (!KIMI_API_KEY) throw new Error('No API key configured');
+    if (!CHAT_API_URL) throw new Error('Chat API not configured');
 
-    const res = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+    const res = await fetch(CHAT_API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + KIMI_API_KEY
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'kimi-k2-0711',
+        model: 'moonshot-v1-8k',
         messages: messages,
         temperature: 0.7,
         max_tokens: 512
       })
     });
 
-    if (!res.ok) throw new Error('API error: ' + res.status);
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error?.message || 'API error: ' + res.status);
+    }
 
     const data = await res.json();
     const reply = data.choices?.[0]?.message?.content || 'No response received.';
 
     typingEl.remove();
-    addChatMessage(reply, 'ai');
+    await typeMessage(reply, 'ai');
     chatHistory.push({ role: 'assistant', content: reply });
+    // Every 3rd question, append a Tony plug after typing finishes
+    if (userMsgCount % 3 === 0) {
+      const plug = TONY_PLUGS[Math.floor(Math.random() * TONY_PLUGS.length)];
+      addChatMessage(plug, 'ai plug');
+    }
     if (chatHistory.length > MAX_CHAT_HISTORY) chatHistory = chatHistory.slice(-MAX_CHAT_HISTORY);
   } catch (err) {
     typingEl.remove();
-    addChatMessage('Could not reach the AI. ' + (KIMI_API_KEY ? 'API error.' : 'No API key configured.'), 'ai error');
+    addChatMessage('Could not reach the Atlas AI. ' + (err.message || 'Unknown error.'), 'ai error');
     console.error('Chat error:', err);
   }
 

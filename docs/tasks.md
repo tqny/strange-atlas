@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-BUILD — AI Chat Mode (Phase 6)
+BUILD — About Page (Phase 7)
 
 ## Planning Tasks
 
@@ -76,8 +76,12 @@ BUILD — AI Chat Mode (Phase 6)
 - [x] **Nav links** — Atlas / Ask Atlas / About. Renamed "Chat with AI" to "Ask Atlas" for editorial tone.
 - [x] **Chat mode transition** — Zoom-out animation, chat rises from bottom, reverse on Atlas click. Category toggles stay in place (not sliding up with globe). Pointer-events pass through empty chat container to globe. Double-click globe restarts auto-rotate.
 - [x] **Chat UI** — Editorial message styling (user pills, AI left-border quotes). Hide/Show toggle preserves context. New chat clears conversation. 240px max message height. Title scramble effect on page load, click, and mode switches. Subtitle updated to "~99,000 strange places · 10 categories".
-- [→] **Kimi 2.5 API integration** — Client-side fetch. API key injected at build time (`%%KIMI_API_KEY%%`). Context-aware system prompt includes active categories. Streaming if supported. Graceful error handling. Scaffolded but untested — next task.
-- [→] **Build script update** — `build-globe.py` reads `KIMI_API_KEY` from env, replaces `%%KIMI_API_KEY%%` marker. Scaffolded, needs verification.
+- [x] **Kimi API integration** — Moonshot `moonshot-v1-8k` via Cloudflare Worker proxy (`worker/proxy.js`). API key server-side as Worker secret. CORS handled by proxy. Context-aware system prompt includes active categories.
+- [x] **Build script update** — `build-globe.py` injects `CHAT_API_URL` env var (proxy URL). API key no longer in browser.
+- [x] **Atlas voice tuning** — Dry, deadpan, 1-2 sentence responses. System prompt rewritten for concision and character.
+- [x] **Typing animation** — Character-by-character reveal for AI responses. Adaptive speed based on response length.
+- [x] **Tony plug** — Witty hire-me aside appended every 3rd question. 8 randomized variants, subtle italic styling.
+- [x] **Rate limiting** — 30 messages/session (client-side) + 60 requests/hour/IP (worker-side) + 512 max_tokens cap.
 
 ### Phase 7: About Page
 

@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**BUILD — AI Chat Mode (Phase 6)**
+**BUILD — About Page (Phase 7)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -17,10 +17,9 @@ Update this field as the project advances.
 
 ## What To Do Right Now
 
-Phase 5 (Overlap / Intersections) is complete. Next up:
+Phase 6 (AI Chat Mode) is complete. Next up:
 
-1. **AI Chat Mode** — Chat interface on the globe page. "Chat with AI" nav link triggers smooth globe zoom-out, chat UI rises from bottom half of viewport. Kimi 2.5 API, context-aware of active categories. Globe stays visible, rotating, toggleable. Reverse animation on "Atlas" nav click.
-2. **About page** — In-product reviewer brief: data sources, design intent, build story, portfolio framing.
+1. **About page** — In-product reviewer brief: data sources, design intent, build story, portfolio framing. Separate page (`about.html`), shares nav and design tokens.
 
 ---
 
