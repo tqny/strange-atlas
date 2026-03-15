@@ -103,9 +103,9 @@ BUILD — Deployment (Phase 8)
 
 - [x] **Create repo** — `github.com/tqny/strange-atlas`, published.
 - [x] **Initial commit** — Source JSON + dataset folder excluded via `.gitignore`. Data files excluded for now (preview is self-contained).
-- [ ] **Resolve globe-preview.html deploy** — Currently in `.gitignore` (21MB built file). Either remove from gitignore and commit, or set up a GitHub Actions build step to generate it on deploy.
-- [ ] **Enable GitHub Pages** — Serve from main branch. `index.html` redirects to `globe-preview.html`.
-- [ ] **Final README pass** — Portfolio-quality. Remove "deploy pending" from live link.
+- [x] **Resolve globe-preview.html deploy** — GitHub Actions workflow builds `index.html` from template + data at deploy time. Data files tracked in git, built output gitignored.
+- [→] **Enable GitHub Pages** — Set Pages source to "GitHub Actions" in repo settings. Workflow deploys on push to main.
+- [x] **Final README pass** — Removed "deploy pending" from live link.
 - [ ] **Cross-browser check** — Chrome, Firefox, Safari desktop + mobile Safari.
 
 ### Phase 9: Modular Refactor (Post-MVP)

@@ -2,7 +2,7 @@
 
 An interactive 3D globe visualizing ~99,000 real-world mysterious phenomena - UFO sightings, bigfoot encounters, haunted places, volcanoes, shipwrecks, and more - rendered as a dot-matrix editorial experience.
 
-**Live:** [tqny.github.io/strange-atlas](https://tqny.github.io/strange-atlas/) *(deploy pending)*
+**Live:** [tqny.github.io/strange-atlas](https://tqny.github.io/strange-atlas/)
 **Portfolio:** [tqny.github.io/Tony-s-Site](https://tqny.github.io/Tony-s-Site/)
 
 ---
@@ -61,7 +61,7 @@ npx serve .
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/globe-preview.html`.
+Open `http://localhost:8000/globe-preview.html` (or build to `index.html` — see below).
 
 To rebuild after editing `globe-template.html`:
 
