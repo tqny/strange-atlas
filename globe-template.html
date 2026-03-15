@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Strange Atlas — Globe Preview</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 :root { --bg: #f5f5f5; --text: #1a1a1a; --text-dim: #999; --text-mid: #666; --panel-bg: rgba(255,255,255,0.85); }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: radial-gradient(ellipse at 50% 48%, #ffffff 0%, #f0f0f0 30%, #c8c8c8 100%); color: var(--text); font-family: 'Inter', sans-serif; }
 #globe-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 #globe-container.chat-active { transform: translateY(-25%); }
 canvas { display: block; }
@@ -57,7 +57,7 @@ canvas { display: block; }
 #tooltip-name { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
 #tooltip-meta { font-size: 0.66rem; color: var(--text-dim); margin-bottom: 5px; }
 #tooltip-desc { font-size: 0.7rem; color: var(--text-mid); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-#chat-container { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; z-index: 9; transform: translateY(100%); transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: none; }
+#chat-container { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; z-index: 9; transform: translateY(100%); transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: none; background: linear-gradient(to bottom, transparent 0%, var(--bg) 30%); }
 #chat-container.active { transform: translateY(0); }
 #chat-inner { display: flex; flex-direction: column; width: 320px; max-width: 90vw; max-height: calc(50vh - 20px); padding: 24px 0 20px; overflow: hidden; transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); justify-content: flex-end; pointer-events: auto; }
 #chat-inner.expanded { width: 520px; }
@@ -69,6 +69,8 @@ canvas { display: block; }
 .chat-msg.ai { align-self: flex-start; background: transparent; color: var(--text-mid); border-radius: 0; padding: 4px 2px; font-weight: 300; line-height: 1.65; border-left: 1.5px solid rgba(0,0,0,0.08); padding-left: 14px; margin-left: 2px; }
 .chat-msg.ai.typing::after { content: ''; display: inline-block; width: 3px; height: 12px; background: var(--text-dim); margin-left: 3px; animation: blink 0.8s infinite; vertical-align: text-bottom; border-radius: 1px; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes wiggle { 0%, 100% { transform: translateX(0); } 15% { transform: translateX(4px); } 30% { transform: translateX(-3px); } 45% { transform: translateX(2px); } 60% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
+#controls-toggle.wiggle { animation: wiggle 0.6s ease; }
 .chat-msg.error { color: var(--text-dim); font-style: italic; font-weight: 300; }
 .chat-msg.plug { font-size: 0.7rem; color: var(--text-dim); font-style: italic; border-left-color: rgba(0,0,0,0.04); opacity: 0.7; }
 #chat-controls { display: none; align-items: center; justify-content: space-between; padding: 4px 2px; }
@@ -89,13 +91,44 @@ canvas { display: block; }
 #chat-examples.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
 .chat-example { padding: 4px 10px; font-family: 'Inter', sans-serif; font-size: 0.64rem; font-weight: 400; color: var(--text-dim); background: transparent; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: color 0.2s ease, border-color 0.2s ease; white-space: nowrap; }
 .chat-example:hover { color: var(--text); border-color: rgba(0,0,0,0.2); }
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  #site-nav { flex-direction: row; align-items: flex-start; padding: 20px 20px 0; gap: 8px; }
+  #site-nav .nav-links { gap: 14px; }
+  #site-nav h1 { font-size: 1.3rem; }
+  #site-nav .subtitle { font-size: 0.65rem; }
+  #controls { padding-left: 20px; flex-direction: column; align-items: flex-start; top: 28% !important; transform: none !important; }
+  #controls.collapsed { top: 28% !important; transform: none !important; }
+  #controls-toggle { order: -1; align-self: flex-start; }
+  #controls.collapsed #controls-inner { max-height: 0; overflow: hidden; }
+  .toggle-btn { padding: 5px 10px; font-size: 0.66rem; }
+  .toggle-count { font-size: 0.56rem; }
+  /* Chat mode: globe stays full-viewport, camera zoom handles shrink, canvas fades */
+  #globe-container.chat-active { transform: translateY(-15%); pointer-events: none; }
+  #globe-container.chat-active canvas { opacity: 1; transition: opacity 0.8s ease; }
+  /* Chat overlays the full screen, content pinned to bottom */
+  #chat-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100dvh; background: none !important; z-index: 15; }
+  #chat-container.active { background: none !important; }
+  #chat-inner { max-height: 55dvh; padding: 16px 20px 16px; width: 100%; max-width: 100%; background: transparent; }
+  #chat-messages { max-height: 200px; }
+  #chat-examples { flex-wrap: wrap; }
+  #chat-input-wrap { padding: 3px 3px 3px 12px; }
+  #chat-input { font-size: 16px; }
+  .chat-msg.ai { color: var(--text); font-weight: 400; border-left-color: rgba(0,0,0,0.15); }
+  .chat-msg.error { color: var(--text-mid); }
+  #chat-controls button { color: var(--text-mid); }
+  #controls.chat-active { display: none; }
+  #atlas-panel { bottom: 20px; left: 20px; }
+  #atlas-text { font-size: 0.74rem; max-width: 280px; }
+}
 </style>
 </head>
 <body>
 <div id="globe-container"></div>
 <nav id="site-nav"><div><h1>Strange Atlas</h1><div class="subtitle">~99,000 strange places · 10 categories</div></div><div class="nav-links"><a href="#" id="nav-atlas" class="active">Atlas</a><a href="#" id="nav-chat">Ask Atlas</a><a href="about.html">About</a></div></nav>
 <aside id="controls" class="collapsed"><div id="controls-inner"><div id="overlap-control"><div id="overlap-switch" class="disabled"><span class="switch-track"><span class="switch-thumb"></span></span><span class="switch-label">Intersections</span></div></div><div id="category-toggles"></div></div><button id="controls-toggle" aria-label="Toggle categories">›</button></aside>
-<footer id="atlas-panel" class="collapsed"><button id="atlas-toggle" aria-label="Toggle observation">&#x203A;</button><p id="atlas-text">Select a category to begin.</p></footer>
+<footer id="atlas-panel" class="collapsed"><button id="atlas-toggle" aria-label="Toggle observation">&#x203A;</button><p id="atlas-text"></p></footer>
 <div id="tooltip" class="hidden"><div id="tooltip-name"></div><div id="tooltip-meta"></div><div id="tooltip-desc"></div></div>
 <div id="chat-container"><div id="chat-inner"><div id="chat-messages"></div><div id="chat-controls"><button id="chat-minimize" aria-label="Minimize chat">Hide</button><button id="chat-clear" aria-label="Clear conversation">New chat</button></div><div id="chat-input-wrap"><input id="chat-input" type="text" placeholder="Ask about the data..." autocomplete="off"><button id="chat-send" aria-label="Send message"><svg viewBox="0 0 24 24"><path d="M12 19V5M12 5l-5 5M12 5l5 5"/></svg></button></div><div id="chat-examples"></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -215,7 +248,7 @@ const container = document.getElementById('globe-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf5f5f5);
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 0.5, 3.367);
+camera.position.set(0, 0.2, 3.367);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -227,10 +260,37 @@ globeGroup.rotation.x = 0.463; // Tilt to center US vertically
 globeGroup.rotation.y = 0.192; // US centered horizontally
 scene.add(globeGroup);
 
-// Globe sphere — very light, clean
+// Globe sphere — edge-darkened with Fresnel gradient
 const globeMesh = new THREE.Mesh(
   new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64),
-  new THREE.MeshBasicMaterial({ color: 0xeeeeee })
+  new THREE.ShaderMaterial({
+    uniforms: {
+      uCenterColor: { value: new THREE.Color(0xf0f0f0) },
+      uEdgeColor:   { value: new THREE.Color(0xbababa) }
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      void main() {
+        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+        vNormal = normalize(normalMatrix * normal);
+        vViewDir = normalize(cameraPosition - worldPos.xyz);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uCenterColor;
+      uniform vec3 uEdgeColor;
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      void main() {
+        float facing = dot(vNormal, vViewDir);
+        float edge = 1.0 - smoothstep(0.0, 0.55, facing);
+        vec3 col = mix(uCenterColor, uEdgeColor, edge);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `
+  })
 );
 globeGroup.add(globeMesh);
 
@@ -246,9 +306,9 @@ const atmosphereMesh = new THREE.Mesh(
     depthWrite: false,
     side: THREE.BackSide,
     uniforms: {
-      uGlowColor: { value: new THREE.Color(0x8ecae6) }, // light ocean blue
-      uIntensity: { value: 0.45 },
-      uPower: { value: 6.0 }
+      uGlowColor: { value: new THREE.Color(0x9ecde6) }, // lighter ocean blue
+      uIntensity: { value: 0.55 },
+      uPower: { value: 5.0 }
     },
     vertexShader: `
       varying vec3 vNormal;
@@ -270,15 +330,19 @@ const atmosphereMesh = new THREE.Mesh(
         float rim = 1.0 - abs(dot(vNormal, vViewDir));
         float glow = pow(rim, uPower) * uIntensity;
         // Feather the outer edge so it fades softly instead of a hard cutoff
-        float edge = smoothstep(1.0, 0.85, rim);
+        float edge = smoothstep(1.0, 0.9, rim);
         glow *= edge;
+        // Fade inner edge to create gap between globe surface and glow
+        float inner = smoothstep(0.15, 0.35, rim);
+        glow *= inner;
         gl_FragColor = vec4(uGlowColor, glow);
       }
     `
   })
 );
 atmosphereMesh.scale.setScalar(1.04);
-globeGroup.add(atmosphereMesh);
+// atmosphereMesh disabled — uncomment to restore
+// globeGroup.add(atmosphereMesh);
 
 // === SILHOUETTE-AWARE MATERIALS ===
 // Dots/borders sit above the globe surface. At the sphere's silhouette edge,
@@ -308,7 +372,7 @@ function createDotMaterial(color) {
         vec3 normCenter = normalize(instCenter);
         // Radial ripple from origin point
         float angDist = acos(clamp(dot(normCenter, uOrigin), -1.0, 1.0));
-        float ripple = exp(-14.0 * (angDist - uRipplePhase) * (angDist - uRipplePhase));
+        float ripple = exp(-40.0 * (angDist - uRipplePhase) * (angDist - uRipplePhase));
         ripple *= 1.0 - smoothstep(2.0, 3.14159, uRipplePhase);
         vRipple = ripple * uPulse;
         // Scale dot at wave front (grow up to 2.5x)
@@ -332,7 +396,7 @@ function createDotMaterial(color) {
         if (vFacing < 0.1) discard;
         float alpha = smoothstep(0.1, 0.4, vFacing);
         // Flash toward white at wave front
-        vec3 col = mix(uColor, vec3(1.0), 0.3 * vRipple);
+        vec3 col = mix(uColor, vec3(0.4), 0.45 * vRipple);
         gl_FragColor = vec4(col, alpha);
       }
     `
@@ -535,7 +599,7 @@ function buildContinentDots() {
     }
   }
   const geo = new THREE.SphereGeometry(DOT_RADIUS, 4, 3);
-  const mat = createDotMaterial(0xc0c0c0);
+  const mat = createDotMaterial(0xa0a0a0);
   continentDotMesh = new THREE.InstancedMesh(geo, mat, pos.length);
   const d = new THREE.Object3D();
   for (let i=0; i<pos.length; i++) { d.position.copy(pos[i]); d.updateMatrix(); continentDotMesh.setMatrixAt(i, d.matrix); }
@@ -573,7 +637,7 @@ function buildCountryBorders() {
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  const mat = createBorderMaterial(0xaaaaaa, 0.45);
+  const mat = createBorderMaterial(0x888888, 0.55);
   globeGroup.add(new THREE.LineSegments(geo, mat));
   console.log('Country borders: %d segments', verts.length / 6);
 }
@@ -726,7 +790,8 @@ function addCategory(id, data, color, radius, rimmed) {
 }
 for (const cat of CATEGORIES) { const d = CATEGORY_DATA[cat.id]; if(d) addCategory(cat.id, d, cat.color, cat.radius, cat.rimmed); }
 
-// === MOUSE ROTATE ===
+// === MOUSE / TOUCH ROTATE ===
+const isMobile = window.innerWidth <= 480;
 let isDragging=false, prevMouse={x:0,y:0}, velocity={x:0,y:0}, autoRotate=true;
 renderer.domElement.addEventListener('mousedown', e => { isDragging=true; autoRotate=false; prevMouse={x:e.clientX,y:e.clientY}; velocity={x:0,y:0}; });
 renderer.domElement.addEventListener('mousemove', e => {
@@ -739,13 +804,40 @@ renderer.domElement.addEventListener('mousemove', e => {
 renderer.domElement.addEventListener('mouseup', () => isDragging=false);
 renderer.domElement.addEventListener('dblclick', () => { autoRotate=true; velocity={x:0,y:0}; });
 renderer.domElement.addEventListener('mouseleave', () => isDragging=false);
-renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); if (chatMode) return; cameraZTarget = Math.max(2.2, Math.min(6, cameraZTarget + e.deltaY*0.002)); }, {passive:false});
+if (!isMobile) {
+  renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); if (chatMode) return; cameraZTarget = Math.max(2.2, Math.min(6, cameraZTarget + e.deltaY*0.002)); }, {passive:false});
+}
+// Touch: single-finger rotate (no pinch zoom)
+if (isMobile) {
+  let touchId = null;
+  renderer.domElement.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      touchId = e.touches[0].identifier;
+      isDragging = true; autoRotate = false;
+      prevMouse = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+      velocity = {x:0, y:0};
+    }
+  }, {passive:false});
+  renderer.domElement.addEventListener('touchmove', e => {
+    if (e.touches.length !== 1 || !isDragging) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    velocity = { x:(t.clientX-prevMouse.x)*0.004, y:(t.clientY-prevMouse.y)*0.004 };
+    globeGroup.rotation.y += velocity.x; globeGroup.rotation.x += velocity.y;
+    globeGroup.rotation.x = Math.max(-1.2, Math.min(1.2, globeGroup.rotation.x));
+    prevMouse = {x: t.clientX, y: t.clientY};
+  }, {passive:false});
+  renderer.domElement.addEventListener('touchend', e => { isDragging = false; });
+  renderer.domElement.addEventListener('touchcancel', e => { isDragging = false; });
+}
 
 // === CHAT MODE STATE ===
 let chatMode = false;
-let cameraZTarget = 3.367; // default globe zoom
+const MOBILE_ZOOM = 4.2;   // more zoomed out on mobile
+let cameraZTarget = isMobile ? MOBILE_ZOOM : 3.367;
 const CHAT_ZOOM = 4.5;     // zoomed-out z for chat mode
-const DEFAULT_ZOOM = 3.367;
+const DEFAULT_ZOOM = isMobile ? MOBILE_ZOOM : 3.367;
 const CAM_LERP = 0.05;     // lerp factor for camera animation
 
 // === ANIMATE ===
@@ -816,10 +908,21 @@ window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window
 // === UI ===
 const controlsEl = document.getElementById('controls');
 const controlsToggleEl = document.getElementById('controls-toggle');
+let chevronOpened = false;
 controlsToggleEl.addEventListener('click', () => {
   const collapsed = controlsEl.classList.toggle('collapsed');
   controlsToggleEl.textContent = collapsed ? '›' : '‹';
+  if (!collapsed) { chevronOpened = true; if (wiggleInterval) clearInterval(wiggleInterval); }
 });
+// Wiggle chevron to draw attention: 3s, 5s, 7s, 9s, 11s, then every 5s
+let wiggleInterval = null;
+function wiggleChevron() {
+  if (chevronOpened) return;
+  controlsToggleEl.classList.add('wiggle');
+  controlsToggleEl.addEventListener('animationend', () => controlsToggleEl.classList.remove('wiggle'), {once:true});
+}
+[3000, 5000, 7000, 9000, 11000].forEach(t => setTimeout(wiggleChevron, t));
+setTimeout(() => { wiggleInterval = setInterval(wiggleChevron, 5000); }, 11000);
 const togglesEl = document.getElementById('category-toggles');
 const atlasTextEl = document.getElementById('atlas-text');
 const atlasPanelEl = document.getElementById('atlas-panel');
@@ -987,36 +1090,10 @@ let atlasTimeout = null;
 function updateAtlasText() {
   let newText = '';
   const active = Array.from(activeCategories);
-  if (active.length === 0) newText = '';
-  else if (active.length === 1) newText = ATLAS_OBSERVATIONS[active[0]] || '';
-  else if (active.length === 2) {
-    const key = active.sort().join('+');
-    newText = ATLAS_INTERSECTIONS[key] || '';
-  } else {
-    newText = '';
-  }
 
-  // Panel visibility logic
-  if (active.length === 0) {
-    // No categories: collapse, hide chevron, reset manual close
-    atlasPanelEl.classList.add('collapsed');
-    atlasToggleEl.classList.remove('visible');
-    atlasToggleEl.textContent = '\u203A';
-    atlasManualClose = false;
-  } else if (!atlasPromptDismissed) {
-    // First category ever: auto-open, show chevron
-    atlasPromptDismissed = true;
-    atlasPanelEl.classList.remove('collapsed');
-    atlasToggleEl.classList.add('visible');
-    atlasToggleEl.textContent = '\u2039';
-  } else {
-    // Subsequent toggles: show chevron, but respect manual close
-    atlasToggleEl.classList.add('visible');
-    if (!atlasManualClose) {
-      atlasPanelEl.classList.remove('collapsed');
-      atlasToggleEl.textContent = '\u2039';
-    }
-  }
+  // Panel and chevron always hidden (narrator disabled)
+  atlasPanelEl.classList.add('collapsed');
+  atlasToggleEl.classList.remove('visible');
 
   if (atlasTimeout) clearTimeout(atlasTimeout);
   atlasTextEl.style.transition = 'opacity 0.3s ease';
@@ -1140,11 +1217,11 @@ function launchWaveAnimation() {
       globeGroup.remove(mesh);
       geo.dispose();
       waveMat.dispose();
-      // Seamlessly start first ripple from US east coast
+      // Seamlessly start first ripple from West Africa, traveling west
       rippleStartTime = performance.now();
       if (continentDotMesh) {
-        const eastCoast = latLngToVec3(40, -67, 1.0);
-        continentDotMesh.material.uniforms.uOrigin.value.copy(eastCoast.normalize());
+        const westAfrica = latLngToVec3(10, -10, 1.0);
+        continentDotMesh.material.uniforms.uOrigin.value.copy(westAfrica.normalize());
       }
       return;
     }
@@ -1230,16 +1307,18 @@ chatInput.addEventListener('input', () => {
   else if (chatMessages.children.length === 0) chatExamples.classList.remove('hidden');
 });
 
-// Expand chat on focus, collapse on blur if empty
-chatInput.addEventListener('focus', () => { chatInner.classList.add('expanded'); });
-chatInput.addEventListener('blur', () => {
-  if (!chatInput.value.trim() && chatMessages.children.length === 0) chatInner.classList.remove('expanded');
-});
+// Expand chat on focus, collapse on blur if empty (desktop only)
+if (!isMobile) {
+  chatInput.addEventListener('focus', () => { chatInner.classList.add('expanded'); });
+  chatInput.addEventListener('blur', () => {
+    if (!chatInput.value.trim() && chatMessages.children.length === 0) chatInner.classList.remove('expanded');
+  });
+}
 
 function enterChatMode() {
   if (chatMode) return;
   chatMode = true;
-  cameraZTarget = CHAT_ZOOM;
+  cameraZTarget = isMobile ? 5.5 : CHAT_ZOOM;
   autoRotate = true;
   chatContainer.classList.add('active');
   controlsEl.classList.add('chat-active');
@@ -1254,6 +1333,8 @@ function enterChatMode() {
   // If there are messages, stay expanded; otherwise start narrow
   if (chatMessages.children.length > 0) chatInner.classList.add('expanded');
   else chatInner.classList.remove('expanded');
+  // Mobile: lock page scroll
+  if (isMobile) { document.body.style.position = 'fixed'; document.body.style.width = '100%'; document.body.style.background = 'var(--bg)'; }
   textScramble(titleEl);
 }
 
@@ -1264,6 +1345,8 @@ function exitChatMode() {
   chatContainer.classList.remove('active');
   controlsEl.classList.remove('chat-active');
   container.classList.remove('chat-active');
+  // Mobile: unlock page scroll
+  if (isMobile) { document.body.style.position = ''; document.body.style.width = ''; document.body.style.background = ''; }
   // Restore atlas narrator
   atlasPanelEl.style.opacity = '1';
   atlasPanelEl.style.pointerEvents = '';
@@ -1277,6 +1360,45 @@ function exitChatMode() {
 
 navAtlas.addEventListener('click', e => { e.preventDefault(); exitChatMode(); });
 navChat.addEventListener('click', e => { e.preventDefault(); enterChatMode(); });
+
+// Auto-activate chat mode if URL has #chat (e.g. from about.html "Ask Atlas" link)
+if (window.location.hash === '#chat') { setTimeout(enterChatMode, 100); }
+
+// Mobile: lock viewport when keyboard opens in chat mode
+if (isMobile) {
+  const chatEl = document.getElementById('chat-container');
+  // Prevent iOS from scrolling the page when focusing the input
+  chatInput.addEventListener('focus', () => {
+    if (!chatMode) return;
+    // Force scroll back to top immediately and continuously
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  });
+  // Keep forcing scroll position during any scroll attempts
+  let scrollLock = null;
+  const lockScroll = () => {
+    if (chatMode) { window.scrollTo(0, 0); document.body.scrollTop = 0; }
+  };
+  // Use visualViewport to resize the chat container to the visible area
+  if (window.visualViewport) {
+    const syncViewport = () => {
+      if (!chatMode) { chatEl.style.height = ''; return; }
+      chatEl.style.height = window.visualViewport.height + 'px';
+      // Force page back to top
+      requestAnimationFrame(lockScroll);
+    };
+    window.visualViewport.addEventListener('resize', syncViewport);
+    window.visualViewport.addEventListener('scroll', () => {
+      if (chatMode) {
+        window.scrollTo(0, 0);
+        syncViewport();
+      }
+    });
+  }
+  // Also catch any window scroll events while in chat mode
+  window.addEventListener('scroll', () => { if (chatMode) lockScroll(); }, {passive: false});
+}
 
 // Chat messaging
 let chatHistory = []; // {role, content} for API context

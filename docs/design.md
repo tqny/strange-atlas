@@ -56,7 +56,7 @@ Subtle auto-rotation when no interaction is happening. Planned: ambient dot puls
 - **Continent dots:** InstancedMesh SphereGeometry (radius 0.0015), silhouette-aware ShaderMaterial that discards fragments where the normal-to-view dot product < 0.1, with smoothstep fade 0.1–0.4. Prevents dots from peeking past the globe silhouette edge.
 - **Category dots:** InstancedMesh SphereGeometry (radius 0.007), same silhouette shader. One mesh per category, toggled via `mesh.visible`.
 - **Border lines:** LineSegments with similar silhouette discard (threshold 0.35, smoothstep 0.35–0.5). Rendered once per arc, not per country.
-- **Atmosphere:** BackSide sphere at 1.04× scale, Fresnel rim shader (`power: 6.0, intensity: 0.45`), color `#8ecae6`.
+- **Atmosphere:** BackSide sphere at 1.04× scale, Fresnel rim shader (`power: 5.0, intensity: 0.55`), color `#9ecde6`. Inner fade creates a subtle gap between globe surface and glow band.
 
 ### UI Components
 
