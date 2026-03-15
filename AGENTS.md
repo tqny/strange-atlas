@@ -7,7 +7,7 @@ Part of the portfolio at https://tqny.github.io/Tony-s-Site/
 
 ## Current Phase
 
-**BUILD — About Page (Phase 7)**
+**BUILD — Deployment (Phase 8)**
 
 Phases progress as: BRIEF → PLAN → BUILD → POLISH
 
@@ -17,9 +17,12 @@ Update this field as the project advances.
 
 ## What To Do Right Now
 
-Phase 6 (AI Chat Mode) is complete. Next up:
+Phase 7 (About Page + Visual Polish + Mobile) is complete. Next up:
 
-1. **About page** — In-product reviewer brief: data sources, design intent, build story, portfolio framing. Separate page (`about.html`), shares nav and design tokens.
+1. **Commit current state** — All Phase 7 work: about page, mobile responsive, globe visual polish, chevron wiggle, narrator removal.
+2. **Enable GitHub Pages** — Serve from main branch. Entry point is `globe-preview.html`.
+3. **Final README pass** — Confirm live link works, remove "deploy pending" note.
+4. **Cross-browser check** — Chrome, Firefox, Safari desktop + mobile Safari.
 
 ---
 
@@ -49,14 +52,15 @@ For any thread picking up this project:
 
 ## Key Technical Notes
 
-- **Three.js globe** — InstancedMesh for dot-matrix continents and category points. ShaderMaterial with silhouette discard for clean edges. Atmosphere glow via Fresnel rim shader.
+- **Three.js globe** — InstancedMesh for dot-matrix continents and category points. ShaderMaterial with silhouette discard for clean edges. Fresnel edge-darkening shader on globe surface (center #f0f0f0, edge #bababa). Atmosphere glow disabled (code preserved).
 - **Template/build system** — `globe-template.html` + `scripts/build-globe.py` → `globe-preview.html` (~21MB). All data inlined. Edit the template, not the built file.
 - **TopoJSON** — Custom decoder (no D3 dependency). `world-110m.json` for land PIP, `countries-110m.json` for borders.
 - **Antimeridian handling** — Polygons wrapping ±180° break PIP ray-casting. Handled by `splitAtAntimeridian()` (2-wrap-edge, e.g. Eurasia) and `fixPolarPoly()` (1-wrap-edge, e.g. Antarctica). See inline comments in `globe-template.html`.
 - **Data** — 10 categories, ~99K total points. Pre-split JSON in `data/`. Source: `strange_places_v5.2.json`.
-- **Atlas narrator** — pre-scripted in MVP. Designed as swap point for Phase 2 Claude API.
 - **AI Chat Mode** — Phase 6. Chat interface on the globe page (not a separate page). Kimi 2.5 API. Globe zooms out, chat rises from bottom. Context-aware of active categories.
-- **Future pages** — About (Phase 7) is next. Deployment (Phase 8) follows.
+- **About page** — `about.html`. Static HTML, shares nav and tokens with globe page. Product-focused (data, design, mechanics). Mobile responsive. Links back to portfolio site for build story.
+- **Mobile** — Touch rotate, zoom disabled, fixed camera distance (4.2z). Chat mode overlays at full viewport. iOS keyboard handled via visualViewport API. Controls panel column layout with chevron above options + wiggle animation.
+- **Future** — Deployment (Phase 8) is next.
 
 ---
 

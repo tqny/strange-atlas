@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-BUILD — About Page (Phase 7)
+BUILD — Deployment (Phase 8)
 
 ## Planning Tasks
 
@@ -83,9 +83,21 @@ BUILD — About Page (Phase 7)
 - [x] **Tony plug** — Witty hire-me aside appended every 3rd question. 8 randomized variants, subtle italic styling.
 - [x] **Rate limiting** — 30 messages/session (client-side) + 60 requests/hour/IP (worker-side) + 512 max_tokens cap.
 
-### Phase 7: About Page
+### Phase 7: About Page + Visual Polish + Mobile
 
-- [ ] **About page** — `about.html`. In-product reviewer brief: data sources, design intent, build story, portfolio framing. Same design tokens as main page.
+- [x] **About page** — `about.html`. Product-focused reviewer brief: data sources, design intent, how it works. Same design tokens and nav as globe page. Links back to portfolio site for build story. Mobile responsive.
+- [x] **README rewrite** — Updated to reflect Phases 1-6 accurately. Removed stale Dashboard references, added AI Chat Mode, overlap detection, data attribution table.
+- [x] **Globe surface Fresnel shader** — Edge-darkened globe via dot-product gradient (center #f0f0f0, edge #bababa). Replaced flat MeshBasicMaterial.
+- [x] **Globe element darkening** — Continent dots (#c0c0c0 to #a0a0a0), country borders (#aaa/0.45 to #888/0.55) darkened proportionally.
+- [x] **Atmosphere disabled** — Commented out for cleaner look. Code preserved for easy re-enable.
+- [x] **Ripple origin** — First post-landing ripple originates from West Africa instead of US east coast.
+- [x] **Atlas narrator removed** — Single/pair observation comments and chevron removed from UI.
+- [x] **Chevron wiggle animation** — Draws attention to collapsed controls panel. Fires at 3s, 5s, 7s, 9s, 11s, then every 5s. Stops permanently once panel is opened.
+- [x] **Mobile responsive** — Touch rotate (single finger), zoom disabled, fixed globe distance (4.2z), viewport meta locks scale.
+- [x] **Mobile chat mode** — Globe stays full-viewport with full opacity, chat overlays as full-screen layer. Body background flattened. iOS keyboard handled via visualViewport API + body position:fixed scroll lock. Input font 16px prevents iOS auto-zoom.
+- [x] **Mobile controls** — Column layout with chevron above options, fixed position (28% from top), max-height collapse instead of translateX.
+- [x] **Mobile nav** — Row layout (title left, links right) on both globe and about pages.
+- [x] **Stale index.html removed** — Was a redirect; no longer needed.
 
 ### Phase 8: Deployment
 
@@ -102,6 +114,6 @@ BUILD — About Page (Phase 7)
 
 ## Polish Tasks
 
-- [ ] Responsive/mobile considerations (post-MVP but note any quick wins)
+- [x] Responsive/mobile considerations
 - [ ] Performance profiling and optimization pass
 - [ ] Accessibility audit (keyboard navigation, screen reader basics)

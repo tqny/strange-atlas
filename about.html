@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Strange Atlas - About</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+:root { --bg: #f5f5f5; --text: #1a1a1a; --text-dim: #999; --text-mid: #666; --panel-bg: rgba(255,255,255,0.85); }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+
+/* Nav - matches globe page */
+#site-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 28px 36px 0; background: linear-gradient(to bottom, var(--bg) 60%, transparent); }
+#site-nav h1 { font-weight: 600; font-size: 1.6rem; letter-spacing: -0.01em; color: var(--text); }
+#site-nav h1 a { color: inherit; text-decoration: none; }
+#site-nav .subtitle { font-weight: 300; font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.03em; }
+#site-nav .nav-links { display: flex; gap: 16px; }
+#site-nav .nav-links a { font-size: 0.75rem; color: var(--text-dim); text-decoration: none; transition: color 0.2s ease; }
+#site-nav .nav-links a:hover { color: var(--text); }
+#site-nav .nav-links a.active { color: var(--text); font-weight: 500; }
+
+/* Content */
+main { max-width: 640px; margin: 0 auto; padding: 120px 36px 80px; }
+
+.page-title { font-weight: 600; font-size: 1.4rem; letter-spacing: -0.01em; margin-bottom: 8px; }
+.page-tagline { font-weight: 300; font-size: 0.88rem; color: var(--text-mid); line-height: 1.65; margin-bottom: 64px; }
+
+.section-label { font-weight: 500; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+.section-body { font-weight: 300; font-size: 0.84rem; color: var(--text-mid); line-height: 1.7; margin-bottom: 48px; }
+.section-body p { margin-bottom: 12px; }
+.section-body p:last-child { margin-bottom: 0; }
+
+/* Data table */
+.data-table { width: 100%; border-collapse: collapse; margin: 20px 0 8px; font-size: 0.76rem; }
+.data-table th { font-weight: 500; font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); text-align: left; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.data-table td { font-weight: 300; color: var(--text-mid); padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+.data-table td:nth-child(2) { font-variant-numeric: tabular-nums; text-align: right; padding-right: 24px; }
+.data-table th:nth-child(2) { text-align: right; padding-right: 24px; }
+.data-table .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+.data-note { font-size: 0.72rem; font-weight: 300; color: var(--text-dim); margin-top: 12px; line-height: 1.6; }
+
+/* Footer */
+footer { max-width: 640px; margin: 0 auto; padding: 0 36px 64px; }
+.footer-line { font-weight: 300; font-size: 0.72rem; color: var(--text-dim); line-height: 1.8; }
+.footer-line a { color: var(--text-mid); text-decoration: none; transition: color 0.2s ease; }
+.footer-line a:hover { color: var(--text); }
+.footer-cta { display: inline-block; margin-top: 20px; font-weight: 400; font-size: 0.76rem; color: var(--text-mid); text-decoration: none; transition: color 0.2s ease; }
+.footer-cta:hover { color: var(--text); }
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  #site-nav { padding: 20px 20px 0; }
+  #site-nav h1 { font-size: 1.3rem; }
+  #site-nav .subtitle { font-size: 0.65rem; }
+  #site-nav .nav-links { gap: 14px; }
+  main { padding: 100px 20px 60px; }
+  .page-title { font-size: 1.2rem; }
+  .page-tagline { font-size: 0.82rem; margin-bottom: 48px; }
+  .section-body { font-size: 0.8rem; }
+  .data-table { font-size: 0.7rem; }
+  footer { padding: 0 20px 48px; }
+}
+</style>
+</head>
+<body>
+
+<nav id="site-nav">
+  <div>
+    <h1><a href="globe-preview.html">Strange Atlas</a></h1>
+    <div class="subtitle">~99,000 strange places · 10 categories</div>
+  </div>
+  <div class="nav-links">
+    <a href="globe-preview.html">Atlas</a>
+    <a href="globe-preview.html#chat">Ask Atlas</a>
+    <a href="about.html" class="active">About</a>
+  </div>
+</nav>
+
+<main>
+
+  <h2 class="page-title">About This Project</h2>
+  <p class="page-tagline">An interactive 3D globe visualizing ~99,000 real-world mysterious phenomena - UFO sightings, bigfoot encounters, haunted places, volcanoes, shipwrecks, and more - rendered as a dot-matrix editorial experience.</p>
+
+  <!-- THE DATA -->
+  <div class="section-label">The Data</div>
+  <div class="section-body">
+    <p>The dataset is <a href="https://github.com/lukeslp/strange-places-dataset" style="color: var(--text); text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.15);">Strange Places v5.2</a> by Luke Steuber - 354,770 georeferenced records of mysterious phenomena sourced from NASA, NOAA, USGS, BFRO, NUFORC, OpenStreetMap, and the Shadowlands Haunted Places Index. All real data from authoritative databases. No synthetic records.</p>
+    <p>For this project, four high-volume categories (tornadoes, caves, megaliths, storm events) were cut for performance and visual clarity, leaving 10 categories and ~99,000 points. UFO sightings were filtered to 2010 and later.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Category</th><th>Records</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="dot" style="background:#4A6FA5"></span>Meteorites</td><td>32,186</td><td>NASA</td></tr>
+        <tr><td><span class="dot" style="background:#0EAEBE"></span>UFO Sightings</td><td>21,490</td><td>NUFORC</td></tr>
+        <tr><td><span class="dot" style="background:#C45C6A"></span>Ghost Towns</td><td>18,154</td><td>OpenStreetMap</td></tr>
+        <tr><td><span class="dot" style="background:#A855E8"></span>Haunted Places</td><td>9,717</td><td>Shadowlands</td></tr>
+        <tr><td><span class="dot" style="background:#2DA67A"></span>Thermal Springs</td><td>5,003</td><td>NOAA</td></tr>
+        <tr><td><span class="dot" style="background:#3D7A3D"></span>Bigfoot Sightings</td><td>3,797</td><td>BFRO</td></tr>
+        <tr><td><span class="dot" style="background:#D4920B"></span>Earthquakes</td><td>3,742</td><td>USGS</td></tr>
+        <tr><td><span class="dot" style="background:#1B6B8A"></span>Shipwrecks</td><td>3,653</td><td>NOAA</td></tr>
+        <tr><td><span class="dot" style="background:#E82E2E"></span>Fireballs</td><td>863</td><td>NASA</td></tr>
+        <tr><td><span class="dot" style="background:#E8632B"></span>Volcanoes</td><td>170</td><td>USGS</td></tr>
+      </tbody>
+    </table>
+    <p class="data-note">Data licensed under CC BY 4.0. UFO sightings filtered to 2010+.</p>
+  </div>
+
+  <!-- THE DESIGN -->
+  <div class="section-label">The Design</div>
+  <div class="section-body">
+    <p>The globe is rendered as a dot-matrix - ~74,000 tiny spheres at 0.4° spacing forming the continents, with category data scattered as colored neon points on top. The aesthetic is editorial, not analytic. Light background, clean negative space, a single typeface (Inter), and a Fresnel-shaded globe surface that darkens toward the edges for depth. Closer to an art piece with utility than a dashboard.</p>
+    <p>The central interaction is overlap: toggle two or more categories, switch on Intersections mode, and the globe filters down to only the zones where those phenomena share geography. The interesting question isn't where things are - it's where they coincide.</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section-label">How It Works</div>
+  <div class="section-body">
+    <p>The globe is built with Three.js (r128), vanilla JavaScript, and no framework. Continent dots and category points are both rendered as InstancedMesh - one draw call per layer, each with a custom ShaderMaterial that discards fragments at the globe's silhouette edge for clean visual boundaries.</p>
+    <p>Land geometry comes from TopoJSON (110m resolution), decoded with a custom parser instead of D3. Antimeridian-wrapping polygons - where landmasses like Eurasia cross the ±180° line - required special handling: a polygon splitter for two-edge wraps and a polar closer for Antarctica.</p>
+    <p>Overlap detection runs a Haversine distance check on a 2° spatial grid, flagging points within 150km of a point in another active category. The result drives a per-instance shader attribute that fades non-overlapping points during intersection mode.</p>
+    <p>The AI chat mode ("Ask Atlas") sends questions to a Kimi 2.5 model via a Cloudflare Worker proxy. The API key lives server-side as a Worker secret. The system prompt is context-aware - it knows which categories are currently active on the globe.</p>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-line">Built by Tony Mikityuk · AI-assisted with Claude</div>
+  <div class="footer-line"><a href="https://github.com/tqny/strange-atlas">GitHub</a> · Data: <a href="https://github.com/lukeslp/strange-places-dataset">Strange Places v5.2</a> (CC BY 4.0)</div>
+  <a class="footer-cta" href="https://tqny.github.io/Tony-s-Site/">See the full build story &rarr;</a>
+</footer>
+
+<script>
+const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+function textScramble(el, duration = 0.8, speed = 0.04) {
+  const text = el.dataset.text || (el.dataset.text = el.textContent);
+  const steps = duration / speed;
+  let step = 0;
+  const interval = setInterval(() => {
+    const progress = step / steps;
+    let scrambled = '';
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === ' ') { scrambled += ' '; continue; }
+      scrambled += progress * text.length > i ? text[i] : SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+    }
+    el.textContent = scrambled;
+    step++;
+    if (step > steps) { clearInterval(interval); el.textContent = text; }
+  }, speed * 1000);
+}
+const titleEl = document.querySelector('#site-nav h1 a');
+titleEl.addEventListener('click', () => textScramble(titleEl));
+setTimeout(() => textScramble(titleEl), 300);
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Strange Atlas
 
-An interactive 3D globe visualizing ~99,000 real mysterious phenomena — UFO sightings, bigfoot encounters, haunted places, volcanoes, shipwrecks, and more — rendered as a dot-matrix editorial experience.
+An interactive 3D globe visualizing ~99,000 real-world mysterious phenomena - UFO sightings, bigfoot encounters, haunted places, volcanoes, shipwrecks, and more - rendered as a dot-matrix editorial experience.
 
 **Live:** [tqny.github.io/strange-atlas](https://tqny.github.io/strange-atlas/) *(deploy pending)*
 **Portfolio:** [tqny.github.io/Tony-s-Site](https://tqny.github.io/Tony-s-Site/)
@@ -9,49 +9,49 @@ An interactive 3D globe visualizing ~99,000 real mysterious phenomena — UFO si
 
 ## What It Is
 
-A full-viewport 3D globe where 10 categories of strange phenomena can be toggled on and off. Each category lights up in a distinct color. Where categories geographically overlap, the visualization intensifies — showing you places where the world gets particularly weird.
+A full-viewport 3D globe where 10 categories of strange phenomena can be toggled on and off. Each category lights up as neon scatter points in a distinct color. Where categories geographically overlap, an intersection mode filters the globe down to just those shared zones - showing you places where the world gets particularly weird.
 
-An AI narrator called "The Atlas" delivers dry, deadpan observations as you explore. In v1, these are pre-scripted. Phase 2 replaces them with live Claude API responses.
+A pre-scripted narrator called The Atlas delivers dry, deadpan observations as you explore. An AI chat mode ("Ask Atlas") lets you ask questions about the data using natural language, powered by Kimi 2.5 via a Cloudflare Worker proxy.
 
-## Why It Exists
+## Features
 
-This is a portfolio project demonstrating interactive data visualization, editorial design sensibility, and the judgment to take a creative concept from raw open data to a polished, shareable product. It also demonstrates AI-assisted development workflow — the entire project was built collaboratively with Claude.
+- **Custom 3D globe** - Three.js InstancedMesh dot-matrix continents with silhouette-aware shaders. Fresnel edge-darkening on the globe surface for depth. No tile libraries, no Mapbox, no Leaflet.
+- **10 category toggles** - Each with a distinct color, neon glow shader, and size scaled by data density.
+- **Geographic overlap detection** - Haversine distance on a 2° spatial grid (150km radius). Shader-based intersection mode fades non-overlapping points.
+- **Ask Atlas (AI chat)** - Kimi 2.5 API via Cloudflare Worker proxy. Context-aware system prompt includes active categories. Character-by-character typing animation. 30 messages/session client-side, 60 requests/hour/IP server-side.
+- **Landing wave animation** - West-to-east gaussian sweep across the US on page load, sampling all category colors.
+- **Ambient ripple** - Radial pond-ripple on continent dots during idle. Scale and brightness pulse from random origins.
+- **Hover tooltips** - Point name, category, date, and description on mouseover.
+- **Mobile responsive** - Touch rotate, fixed zoom, full-viewport chat overlay with iOS keyboard handling.
 
-The secondary reason: it's genuinely interesting. ~99,000 data points across 10 categories of the world's strangest places, and you can layer them to find the overlaps.
+## Data
 
-## What's In V1
+Source: [Strange Places v5.2](https://github.com/lukeslp/strange-places-dataset) by Luke Steuber (CC BY 4.0). 354,770 records across 14 categories, filtered to 10 categories and ~99K points for this project.
 
-- Custom dot-matrix 3D globe rendered via Three.js (no tile libraries, no Mapbox, no Leaflet)
-- 10 category toggles with assigned color palette
-- Geographic overlap visualization
-- Pre-scripted Atlas narrator with category-specific and intersection-specific observations
-- Point hover tooltips with record details
-- Atmosphere glow and country border lines for geographic context
-- Static deployment to GitHub Pages
-
-## What's Planned
-
-- **Dashboard page** — statistical analysis: category breakdown, reports over time, by-state view
-- **About page** — in-product reviewer brief with data sources, design intent, and build story
-- Live Claude API integration for the Atlas narrator
-
-## What's Intentionally Deferred
-
-- Light/dark mode toggle
-- Mobile optimization
-- Timeline/playback animation
-- Search and filtering beyond category toggles
+| Category | Records | Source |
+|----------|---------|--------|
+| Meteorites | 32,186 | NASA |
+| UFO Sightings (2010+) | 21,490 | NUFORC |
+| Ghost Towns | 18,154 | OpenStreetMap |
+| Haunted Places | 9,717 | Shadowlands Index |
+| Thermal Springs | 5,003 | NOAA |
+| Bigfoot Sightings | 3,797 | BFRO |
+| Earthquakes | 3,742 | USGS |
+| Shipwrecks | 3,653 | NOAA |
+| Fireballs | 863 | NASA |
+| Volcanoes | 170 | USGS |
 
 ## Architecture
 
-Three.js r128, vanilla JavaScript, no framework. Single-file prototype (`globe-template.html`) built via Python script into a self-contained HTML file with all data inlined. Custom TopoJSON decoder (no D3). InstancedMesh for ~74K continent dots and category scatter points. Silhouette-aware shaders for clean globe edges. The Atlas narrator module is designed as a clean swap point for Phase 2 API integration.
+Three.js r128, vanilla JavaScript, no framework. Single-file prototype (`globe-template.html`) built via Python script into a self-contained HTML file (~21MB) with all data inlined. Custom TopoJSON decoder (no D3 dependency). InstancedMesh for ~74K continent dots and per-category scatter points. Silhouette-aware ShaderMaterial discards fragments at the globe edge.
 
-Data source: [strange_places_v5.2.json](https://github.com/) (CC BY 4.0) — ~99,000 records across 10 categories.
+Antimeridian-wrapping polygons handled via `splitAtAntimeridian()` (2-wrap-edge, e.g. Eurasia) and `fixPolarPoly()` (1-wrap-edge, e.g. Antarctica).
 
-## How to Run Locally
+AI chat proxied through a Cloudflare Worker (`worker/proxy.js`). API key stored as a Worker secret - never in the browser. `build-globe.py` injects the proxy URL at build time.
+
+## How to Run
 
 ```bash
-# Clone the repo
 git clone https://github.com/tqny/strange-atlas.git
 cd strange-atlas
 
@@ -66,16 +66,19 @@ Open `http://localhost:8000/globe-preview.html`.
 To rebuild after editing `globe-template.html`:
 
 ```bash
+# Set the chat proxy URL (optional - chat works without it, just won't connect)
+export CHAT_API_URL=https://your-worker.workers.dev
+
 python3 scripts/build-globe.py
 ```
 
-## What This Project Demonstrates
+## What This Demonstrates
 
-- **Data visualization judgment:** Choosing the right visual encoding for ~99K points across 10 categories, with overlap as the central insight mechanic.
-- **Technical range:** Custom WebGL globe rendering, TopoJSON decoding, antimeridian polygon handling, spatial hit detection — without hiding behind a framework.
-- **Design sensibility:** Light editorial aesthetic, dot-matrix continents, atmosphere glow, typographic identity, restraint.
-- **Product thinking:** Clear scope, honest non-goals, success criteria defined in seconds not features.
-- **AI-assisted workflow:** Built collaboratively with Claude using a structured planning methodology. The AI collaboration is part of the portfolio story.
+- **Data visualization judgment** - Choosing the right visual encoding for ~99K points across 10 categories, with geographic overlap as the central insight mechanic.
+- **Technical range** - Custom WebGL rendering, TopoJSON decoding, antimeridian polygon handling, Haversine spatial detection, Cloudflare Workers, shader programming - without hiding behind a framework.
+- **Design sensibility** - Dot-matrix continents, atmosphere glow, neon scatter, typographic identity, editorial restraint. Light theme, clean negative space.
+- **Product thinking** - Clear scope, honest non-goals, and a mid-project pivot from a static dashboard to an AI chat mode when the better product became obvious.
+- **AI-assisted workflow** - Built collaboratively with Claude using a structured planning methodology. The AI collaboration is part of the portfolio story.
 
 ---
 

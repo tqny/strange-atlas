@@ -45,17 +45,19 @@ globe-template.html          ← edit this (source of truth)
 
 6. **Category Points** — InstancedMesh per category. Toggle visibility via UI buttons.
 
-7. **Atmosphere Glow** — BackSide sphere with Fresnel rim shader. Light ocean blue halo.
+7. **Globe Surface Shader** — Custom Fresnel ShaderMaterial creates an edge-darkened gradient (center #f0f0f0, edge #bababa). Smoothstep falloff at 0.55 facing threshold. Replaces flat MeshBasicMaterial.
 
-8. **Mouse Interaction** — Click-drag rotation with inertia, scroll zoom, auto-rotate on load.
+8. **Atmosphere Glow** — BackSide sphere with Fresnel rim shader. Light ocean blue halo. Currently disabled (code preserved, commented out).
 
-9. **UI Overlay** — HTML elements positioned over the WebGL canvas: wordmark, category toggles, atlas text panel, tooltip.
+9. **Mouse / Touch Interaction** — Desktop: click-drag rotation with inertia, scroll zoom, auto-rotate. Mobile: single-finger touch rotate, zoom disabled, fixed camera distance (4.2z). Double-click restarts auto-rotate.
 
-10. **Landing Wave Animation** — Temporary InstancedMesh with US-bounded category points. Per-instance longitude and color attributes. Gaussian wave shader sweeps west→east. Self-disposing on completion. Fires 1s after page load.
+10. **UI Overlay** — HTML elements positioned over the WebGL canvas: wordmark, category toggles, tooltip. Chevron wiggle animation draws attention to collapsed controls (3s, 5s, 7s, 9s, 11s, then every 5s; stops once opened).
 
-11. **Ambient Ripple** — Radial pond-ripple on continent dots. Computed in vertex shader: dots scale 2.5× and flash toward white at the wave front. Random origin each cycle, continuous. First ripple begins seamlessly from the east coast when the landing wave finishes.
+11. **Landing Wave Animation** — Temporary InstancedMesh with US-bounded category points. Per-instance longitude and color attributes. Gaussian wave shader sweeps west-to-east. Self-disposing on completion. Fires 1s after page load.
 
-12. **Atlas Narrator** — Two static lookup objects: `ATLAS_OBSERVATIONS` (10 single-category entries) and `ATLAS_INTERSECTIONS` (25 two-category pair entries, keyed by alphabetically sorted `id+id`). `updateAtlasText()` resolves active category count (0=clear, 1=single, 2=pair, 3+=clear) and crossfades the panel text with a 0.3s opacity transition. Debounced via `clearTimeout` to handle rapid toggles.
+12. **Ambient Ripple** — Radial pond-ripple on continent dots. Computed in vertex shader: dots scale 2.5x and flash toward white at the wave front. Random origin each cycle, continuous. First ripple begins from West Africa when the landing wave finishes.
+
+13. **Mobile Responsive** — Viewport meta locks scale. Chat mode: globe stays full-viewport at full opacity, chat overlays as z-index 15 layer. iOS keyboard handled via visualViewport API + body position:fixed scroll lock. Controls panel uses column layout with chevron above options, fixed at 28% from top. Nav links in row layout.
 
 ## Data
 
@@ -68,6 +70,7 @@ globe-template.html          ← edit this (source of truth)
 
 ```
 strange-atlas/
+├── index.html              # Redirect → globe-preview.html (GitHub Pages entry)
 ├── globe-template.html     # Source — edit this
 ├── globe-preview.html      # Built output — do not edit
 ├── preview.html            # Original 2D flat map prototype (superseded)
@@ -91,6 +94,7 @@ strange-atlas/
 ├── worker/
 │   ├── proxy.js           # Cloudflare Worker — Kimi API proxy
 │   └── wrangler.toml      # Worker deployment config
+├── about.html              # About page — static, no build step
 ├── docs/
 │   ├── spec.md
 │   ├── architecture.md
@@ -128,9 +132,9 @@ The globe page has two modes, toggled via nav links:
 - Server-side: 60 requests/hour per IP (in-memory Map in worker)
 - max_tokens capped at 512 in worker
 
-## Future: About Page
+## About Page (Phase 7)
 
-**About** (Phase 7) — in-product reviewer brief: data sources, design intent, build story. Separate page (`about.html`), shares nav and design tokens.
+`about.html` — static HTML, no build script. Shares nav markup and design tokens (Inter font, `--bg`, `--text`, `--text-dim`, `--text-mid`) with the globe page via inline CSS. Product-focused: data sources, design intent, how it works. Footer links back to portfolio site for the full build story.
 
 The Phase 9 modular refactor converts the single-file prototype into ES modules with runtime data fetching.
 
