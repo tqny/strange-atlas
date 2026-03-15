@@ -19,9 +19,9 @@ Update this field as the project advances.
 
 Phase 7 (About Page + Visual Polish + Mobile) is complete. Next up:
 
-1. **Commit current state** — All Phase 7 work: about page, mobile responsive, globe visual polish, chevron wiggle, narrator removal.
-2. **Enable GitHub Pages** — Serve from main branch. Entry point is `globe-preview.html`.
-3. **Final README pass** — Confirm live link works, remove "deploy pending" note.
+1. ~~Resolve globe-preview.html deploy~~ — Done. GitHub Actions builds `index.html` from template at deploy time.
+2. **Enable GitHub Pages** — Set Pages source to "GitHub Actions" in repo settings. Then merge this branch to main to trigger first deploy.
+3. ~~Final README pass~~ — Done. Removed "deploy pending".
 4. **Cross-browser check** — Chrome, Firefox, Safari desktop + mobile Safari.
 
 ---
@@ -53,7 +53,7 @@ For any thread picking up this project:
 ## Key Technical Notes
 
 - **Three.js globe** — InstancedMesh for dot-matrix continents and category points. ShaderMaterial with silhouette discard for clean edges. Fresnel edge-darkening shader on globe surface (center #f0f0f0, edge #bababa). Atmosphere glow disabled (code preserved).
-- **Template/build system** — `globe-template.html` + `scripts/build-globe.py` → `globe-preview.html` (~21MB). All data inlined. Edit the template, not the built file.
+- **Template/build system** — `globe-template.html` + `scripts/build-globe.py` → `globe-preview.html` (local dev) or `index.html` (CI deploy). ~21MB built output. All data inlined. Edit the template, not the built file. GitHub Actions workflow handles deploy builds.
 - **TopoJSON** — Custom decoder (no D3 dependency). `world-110m.json` for land PIP, `countries-110m.json` for borders.
 - **Antimeridian handling** — Polygons wrapping ±180° break PIP ray-casting. Handled by `splitAtAntimeridian()` (2-wrap-edge, e.g. Eurasia) and `fixPolarPoly()` (1-wrap-edge, e.g. Antarctica). See inline comments in `globe-template.html`.
 - **Data** — 10 categories, ~99K total points. Pre-split JSON in `data/`. Source: `strange_places_v5.2.json`.

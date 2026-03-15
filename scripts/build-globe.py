@@ -40,7 +40,8 @@ template = open(os.path.join(ROOT, 'globe-template.html')).read()
 output = template.replace('%%INLINE_DATA%%', inline_data)
 output = output.replace('%%CHAT_API_URL%%', chat_api_js)
 
-outpath = os.path.join(ROOT, 'globe-preview.html')
+outname = sys.argv[1] if len(sys.argv) > 1 else 'globe-preview.html'
+outpath = os.path.join(ROOT, outname)
 open(outpath, 'w').write(output)
 print(f'Built {outpath}: {os.path.getsize(outpath)/1024/1024:.1f}MB')
 if chat_api_url:
